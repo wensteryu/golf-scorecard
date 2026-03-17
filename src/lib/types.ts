@@ -1,0 +1,112 @@
+export type UserRole = 'coach' | 'student';
+
+export type ScorecardStatus = 'in_progress' | 'submitted' | 'reviewed';
+
+export type FairwayResult = 'hit' | 'left' | 'right' | null;
+
+export type GIRResult = 'hit' | 'left' | 'right' | 'short' | 'long' | null;
+
+export type MentalityRating = 1 | 2 | 3 | 4;
+
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  coach_id: string | null;
+  invite_code: string | null;
+  created_at: string;
+}
+
+export interface GolfCourse {
+  id: string;
+  name: string;
+  coach_id: string;
+  created_at: string;
+  holes?: CourseHole[];
+}
+
+export interface CourseHole {
+  id: string;
+  course_id: string;
+  hole_number: number;
+  par: number;
+}
+
+export interface Scorecard {
+  id: string;
+  student_id: string;
+  course_id: string;
+  tournament_name: string;
+  round_date: string;
+  status: ScorecardStatus;
+  hundred_yards_in: number | null;
+  reflections: string | null;
+  mentality_rating: MentalityRating | null;
+  what_transpired: string | null;
+  how_to_respond: string | null;
+  coach_feedback: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  course?: GolfCourse;
+  student?: Profile;
+  hole_scores?: HoleScore[];
+}
+
+export interface HoleScore {
+  id: string;
+  scorecard_id: string;
+  hole_number: number;
+  par: number;
+  score: number | null;
+  fairway: FairwayResult;
+  gir: GIRResult;
+  putts: number | null;
+  first_putt_distance: number | null;
+  up_and_down: boolean | null;
+  penalty_strokes: number;
+  chip_in: boolean;
+  coach_note: string | null;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: 'scorecard_submitted' | 'scorecard_reviewed';
+  scorecard_id: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+// Calculated stats
+export interface RoundStats {
+  totalScore: number;
+  totalPar: number;
+  scoreToPar: number;
+  front9Score: number;
+  front9Par: number;
+  back9Score: number;
+  back9Par: number;
+  fairwaysHit: number;
+  fairwaysTotal: number;
+  fairwaysMissedLeft: number;
+  fairwaysMissedRight: number;
+  girHit: number;
+  girTotal: number;
+  girMissedLeft: number;
+  girMissedRight: number;
+  girMissedShort: number;
+  girMissedLong: number;
+  totalPutts: number;
+  onePutts: number;
+  threePutts: number;
+  chipIns: number;
+  upAndDownMade: number;
+  upAndDownAttempts: number;
+  par3ScoringToPar: number;
+  par4ScoringToPar: number;
+  par5ScoringToPar: number;
+  penaltyStrokes: number;
+}
