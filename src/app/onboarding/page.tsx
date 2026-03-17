@@ -14,15 +14,13 @@ function generateInviteCode(): string {
   return code;
 }
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 2;
 
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<UserRole | null>(null);
-  const [inviteCode, setInviteCode] = useState('');
-  const [generatedCode] = useState(() => generateInviteCode());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,34 +40,14 @@ export default function OnboardingPage() {
       return;
     }
 
-    let coachId: string | null = null;
-
-    // If student and invite code provided, look up coach
-    if (role === 'student' && inviteCode.trim().length > 0) {
-      const { data: coach, error: coachError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('invite_code', inviteCode.toUpperCase())
-        .eq('role', 'coach')
-        .single();
-
-      if (coachError || !coach) {
-        setError('Invalid invite code. Please check with your coach and try again.');
-        setLoading(false);
-        return;
-      }
-
-      coachId = coach.id;
-    }
-
     // Create profile
     const { error: profileError } = await supabase.from('profiles').insert({
       id: user.id,
       email: user.email!,
       full_name: fullName.trim(),
       role: role!,
-      coach_id: coachId,
-      invite_code: role === 'coach' ? generatedCode : null,
+      coach_id: null,
+      invite_code: null,
     });
 
     if (profileError) {
@@ -201,52 +179,6 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3: Invite code */}
-          {step === 3 && role === 'student' && (
-            <div>
-              <div className="mb-4 text-center text-4xl">🔑</div>
-              <h2 className="mb-1 text-center text-xl font-bold text-golf-gray-500">
-                Have a coach&apos;s invite code?
-              </h2>
-              <p className="mb-6 text-center text-sm text-golf-gray-400">
-                Enter it below to connect with your coach, or skip for now.
-              </p>
-              <input
-                type="text"
-                value={inviteCode}
-                onChange={(e) =>
-                  setInviteCode(e.target.value.toUpperCase().slice(0, 6))
-                }
-                placeholder="Optional"
-                maxLength={6}
-                autoFocus
-                className="touch-target w-full rounded-xl border-2 border-golf-gray-100 bg-golf-gray-50 px-4 py-3 text-center text-2xl font-bold tracking-[0.3em] text-golf-gray-500 placeholder-golf-gray-300 outline-none transition-colors focus:border-golf-blue focus:bg-white"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && canAdvance()) handleNext();
-                }}
-              />
-            </div>
-          )}
-
-          {step === 3 && role === 'coach' && (
-            <div>
-              <div className="mb-4 text-center text-4xl">🎉</div>
-              <h2 className="mb-1 text-center text-xl font-bold text-golf-gray-500">
-                Your invite code
-              </h2>
-              <p className="mb-6 text-center text-sm text-golf-gray-400">
-                Share this code with your students so they can connect with you.
-              </p>
-              <div className="rounded-xl bg-golf-gray-50 px-4 py-4 text-center">
-                <span className="text-3xl font-bold tracking-[0.3em] text-golf-green">
-                  {generatedCode}
-                </span>
-              </div>
-              <p className="mt-3 text-center text-xs text-golf-gray-300">
-                You can always find this code in your settings later.
-              </p>
-            </div>
-          )}
 
           {/* Error message */}
           {error && (
