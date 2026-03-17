@@ -44,8 +44,8 @@ export default function OnboardingPage() {
 
     let coachId: string | null = null;
 
-    // If student, look up coach by invite code
-    if (role === 'student') {
+    // If student and invite code provided, look up coach
+    if (role === 'student' && inviteCode.trim().length > 0) {
       const { data: coach, error: coachError } = await supabase
         .from('profiles')
         .select('id')
@@ -86,8 +86,7 @@ export default function OnboardingPage() {
     if (step === 1) return fullName.trim().length > 0;
     if (step === 2) return role !== null;
     if (step === 3) {
-      if (role === 'student') return inviteCode.trim().length === 6;
-      return true; // Coach just views their code
+      return true; // Invite code is optional for students
     }
     return false;
   };
@@ -207,10 +206,10 @@ export default function OnboardingPage() {
             <div>
               <div className="mb-4 text-center text-4xl">🔑</div>
               <h2 className="mb-1 text-center text-xl font-bold text-golf-gray-500">
-                Enter your coach&apos;s invite code
+                Have a coach&apos;s invite code?
               </h2>
               <p className="mb-6 text-center text-sm text-golf-gray-400">
-                Your coach will give you a 6-character code to connect.
+                Enter it below to connect with your coach, or skip for now.
               </p>
               <input
                 type="text"
@@ -218,7 +217,7 @@ export default function OnboardingPage() {
                 onChange={(e) =>
                   setInviteCode(e.target.value.toUpperCase().slice(0, 6))
                 }
-                placeholder="ABC123"
+                placeholder="Optional"
                 maxLength={6}
                 autoFocus
                 className="touch-target w-full rounded-xl border-2 border-golf-gray-100 bg-golf-gray-50 px-4 py-3 text-center text-2xl font-bold tracking-[0.3em] text-golf-gray-500 placeholder-golf-gray-300 outline-none transition-colors focus:border-golf-blue focus:bg-white"
