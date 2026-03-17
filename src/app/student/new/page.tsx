@@ -21,60 +21,103 @@ export default function NewScorecardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Quick-add course state
+  const [showAddCourse, setShowAddCourse] = useState(false);
+  const [newCourseName, setNewCourseName] = useState('');
+  const [addingCourse, setAddingCourse] = useState(false);
+
   useEffect(() => {
-    async function fetchCourses() {
-      try {
-        // Get current user's profile to find their coach
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('coach_id')
-          .eq('id', user.id)
-          .single();
-
-        if (!profile?.coach_id) {
-          setError('No coach assigned. Please contact your coach for an invite code.');
-          setLoading(false);
-          return;
-        }
-
-        // Fetch courses from the student's coach, including holes
-        const { data: coursesData, error: coursesError } = await supabase
-          .from('golf_courses')
-          .select('*, holes:course_holes(*)')
-          .eq('coach_id', profile.coach_id)
-          .order('name');
-
-        if (coursesError) throw coursesError;
-
-        setCourses(coursesData ?? []);
-        if (coursesData && coursesData.length > 0) {
-          setSelectedCourseId(coursesData[0].id);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load courses');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchCourses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function fetchCourses() {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Fetch all courses (single-coach model — all courses are shared)
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('golf_courses')
+        .select('*, holes:course_holes(*)')
+        .order('name');
+
+      if (coursesError) throw coursesError;
+
+      setCourses(coursesData ?? []);
+      if (coursesData && coursesData.length > 0 && !selectedCourseId) {
+        setSelectedCourseId(coursesData[0].id);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load courses');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAddCourse(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newCourseName.trim()) return;
+
+    setAddingCourse(true);
+    setError(null);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      // Create the course (use student's own ID as coach_id for RLS)
+      // In single-coach model, the coach will also see it
+      const { data: course, error: courseError } = await supabase
+        .from('golf_courses')
+        .insert({
+          name: newCourseName.trim(),
+          coach_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (courseError) throw courseError;
+
+      // Create 18 holes defaulting to par 4
+      const holes = Array.from({ length: 18 }, (_, i) => ({
+        course_id: course.id,
+        hole_number: i + 1,
+        par: 4,
+      }));
+
+      const { error: holesError } = await supabase
+        .from('course_holes')
+        .insert(holes);
+
+      if (holesError) throw holesError;
+
+      // Refresh courses and select the new one
+      setNewCourseName('');
+      setShowAddCourse(false);
+      setSelectedCourseId(course.id);
+      await fetchCourses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add course');
+    } finally {
+      setAddingCourse(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!selectedCourseId) {
-      setError('Please select a course');
+      setError('Please select or add a course');
       return;
     }
 
@@ -106,8 +149,6 @@ export default function NewScorecardPage() {
       // Get course holes for par values
       const selectedCourse = courses.find((c) => c.id === selectedCourseId);
       const courseHoles = selectedCourse?.holes ?? [];
-
-      // Sort holes by hole_number
       const sortedHoles = [...courseHoles].sort(
         (a, b) => a.hole_number - b.hole_number
       );
@@ -116,7 +157,7 @@ export default function NewScorecardPage() {
       const holeScoreRows = Array.from({ length: 18 }, (_, i) => {
         const holeNumber = i + 1;
         const courseHole = sortedHoles.find((h) => h.hole_number === holeNumber);
-        const par = courseHole?.par ?? 4; // Default to par 4 if hole data missing
+        const par = courseHole?.par ?? 4;
 
         return {
           scorecard_id: scorecard.id,
@@ -139,7 +180,6 @@ export default function NewScorecardPage() {
 
       if (holesError) throw holesError;
 
-      // Navigate to the round scoring page
       router.push(`/student/round/${scorecard.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create round');
@@ -152,7 +192,7 @@ export default function NewScorecardPage() {
       <div className="min-h-screen flex items-center justify-center bg-golf-gray-50">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-golf-green border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-bold text-golf-gray-400">Loading courses...</p>
+          <p className="text-sm font-bold text-golf-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -187,24 +227,12 @@ export default function NewScorecardPage() {
             >
               Course
             </label>
-            {courses.length === 0 ? (
-              <p className="text-golf-gray-400 text-sm">
-                No courses available. Ask your coach to add a course.
-              </p>
-            ) : (
+            {courses.length > 0 && (
               <select
                 id="course"
                 value={selectedCourseId}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
-                className={[
-                  'w-full px-4 py-3 rounded-xl',
-                  'border-2 border-golf-gray-200 bg-white',
-                  'text-golf-gray-500 font-semibold text-base',
-                  'focus:border-golf-green focus:outline-none',
-                  'min-h-[48px]',
-                  'transition-colors duration-150',
-                  'appearance-none cursor-pointer',
-                ].join(' ')}
+                className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 appearance-none cursor-pointer"
               >
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
@@ -212,6 +240,51 @@ export default function NewScorecardPage() {
                   </option>
                 ))}
               </select>
+            )}
+
+            {/* Quick add course */}
+            {showAddCourse ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCourseName}
+                  onChange={(e) => setNewCourseName(e.target.value)}
+                  placeholder="Course name"
+                  autoFocus
+                  className="flex-1 px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold focus:border-golf-green focus:outline-none min-h-[48px]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCourse(e);
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  loading={addingCourse}
+                  onClick={handleAddCourse}
+                >
+                  Add
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="md"
+                  onClick={() => { setShowAddCourse(false); setNewCourseName(''); }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAddCourse(true)}
+                className="text-left text-sm font-bold text-golf-blue hover:text-golf-blue-dark cursor-pointer"
+              >
+                + Add a new course
+              </button>
             )}
           </div>
 
@@ -229,15 +302,7 @@ export default function NewScorecardPage() {
               value={tournamentName}
               onChange={(e) => setTournamentName(e.target.value)}
               placeholder="Practice Round"
-              className={[
-                'w-full px-4 py-3 rounded-xl',
-                'border-2 border-golf-gray-200 bg-white',
-                'text-golf-gray-500 font-semibold text-base',
-                'focus:border-golf-green focus:outline-none',
-                'min-h-[48px]',
-                'transition-colors duration-150',
-                'placeholder:text-golf-gray-300',
-              ].join(' ')}
+              className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 placeholder:text-golf-gray-300"
             />
           </div>
 
@@ -254,14 +319,7 @@ export default function NewScorecardPage() {
               type="date"
               value={roundDate}
               onChange={(e) => setRoundDate(e.target.value)}
-              className={[
-                'w-full px-4 py-3 rounded-xl',
-                'border-2 border-golf-gray-200 bg-white',
-                'text-golf-gray-500 font-semibold text-base',
-                'focus:border-golf-green focus:outline-none',
-                'min-h-[48px]',
-                'transition-colors duration-150',
-              ].join(' ')}
+              className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150"
             />
           </div>
 
@@ -278,7 +336,7 @@ export default function NewScorecardPage() {
             variant="primary"
             size="lg"
             loading={submitting}
-            disabled={courses.length === 0}
+            disabled={courses.length === 0 && !showAddCourse}
             className="w-full mt-2"
           >
             Start Round

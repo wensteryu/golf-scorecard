@@ -16,7 +16,6 @@ export default function CoachDashboardPage() {
   const [students, setStudents] = useState<Profile[]>([]);
   const [pendingCards, setPendingCards] = useState<Scorecard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -44,28 +43,23 @@ export default function CoachDashboardPage() {
 
         setProfile(profileData as Profile);
 
-        // Fetch students
+        // Fetch all students
         const { data: studentsData } = await supabase
           .from('profiles')
           .select('*')
-          .eq('coach_id', user.id)
+          .eq('role', 'student')
           .order('full_name');
 
         setStudents((studentsData as Profile[]) ?? []);
 
-        // Fetch pending scorecards from students
-        const studentIds = (studentsData ?? []).map((s: Profile) => s.id);
+        // Fetch all pending scorecards
+        const { data: scorecards } = await supabase
+          .from('scorecards')
+          .select('*, course:golf_courses(*), student:profiles!student_id(*)')
+          .eq('status', 'submitted')
+          .order('updated_at', { ascending: false });
 
-        if (studentIds.length > 0) {
-          const { data: scorecards } = await supabase
-            .from('scorecards')
-            .select('*, course:golf_courses(*), student:profiles!student_id(*)')
-            .eq('status', 'submitted')
-            .in('student_id', studentIds)
-            .order('updated_at', { ascending: false });
-
-          setPendingCards((scorecards as Scorecard[]) ?? []);
-        }
+        setPendingCards((scorecards as Scorecard[]) ?? []);
       } catch {
         // Silent fail — user will see empty state
       } finally {
@@ -76,13 +70,6 @@ export default function CoachDashboardPage() {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  async function handleCopyCode() {
-    if (!profile?.invite_code) return;
-    await navigator.clipboard.writeText(profile.invite_code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -112,19 +99,6 @@ export default function CoachDashboardPage() {
             {profile && <NotificationBell userId={profile.id} />}
           </div>
 
-          {/* Invite code badge */}
-          {profile?.invite_code && (
-            <button
-              type="button"
-              onClick={handleCopyCode}
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-golf-blue/10 text-golf-blue font-bold text-sm cursor-pointer hover:bg-golf-blue/20 transition-colors"
-            >
-              <span>Invite Code: {profile.invite_code}</span>
-              <span className="text-xs">
-                {copied ? 'Copied!' : 'Tap to copy'}
-              </span>
-            </button>
-          )}
         </div>
       </div>
 

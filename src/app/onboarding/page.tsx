@@ -5,15 +5,6 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { UserRole } from '@/lib/types';
 
-function generateInviteCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
-
 const TOTAL_STEPS = 2;
 
 export default function OnboardingPage() {
@@ -40,13 +31,28 @@ export default function OnboardingPage() {
       return;
     }
 
+    // If student, auto-link to the coach (single-coach model)
+    let coachId: string | null = null;
+    if (role === 'student') {
+      const { data: coach } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'coach')
+        .limit(1)
+        .single();
+
+      if (coach) {
+        coachId = coach.id;
+      }
+    }
+
     // Create profile
     const { error: profileError } = await supabase.from('profiles').insert({
       id: user.id,
       email: user.email!,
       full_name: fullName.trim(),
       role: role!,
-      coach_id: null,
+      coach_id: coachId,
       invite_code: null,
     });
 
@@ -56,16 +62,12 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Redirect to appropriate dashboard
     router.push(role === 'coach' ? '/coach' : '/student');
   };
 
   const canAdvance = () => {
     if (step === 1) return fullName.trim().length > 0;
     if (step === 2) return role !== null;
-    if (step === 3) {
-      return true; // Invite code is optional for students
-    }
     return false;
   };
 
@@ -152,7 +154,7 @@ export default function OnboardingPage() {
                   <div>
                     <div className="font-bold text-golf-gray-500">Coach</div>
                     <div className="text-sm text-golf-gray-400">
-                      Review scorecards, manage players, and track progress
+                      Review scorecards, manage courses, and track progress
                     </div>
                   </div>
                 </button>
@@ -178,7 +180,6 @@ export default function OnboardingPage() {
               </div>
             </div>
           )}
-
 
           {/* Error message */}
           {error && (
