@@ -120,36 +120,32 @@ export default function RoundScoringPage() {
         )
       );
 
-      // Save to Supabase immediately (no debounce — prevents data loss on swipe)
+      // Save to Supabase — use .update() since rows are pre-created
       const doSave = async () => {
-        try {
-          setSaveStatus('saving');
-          await supabase.from('hole_scores').upsert(
-            {
-              scorecard_id: scorecardId,
-              hole_number: currentHole,
-              [field]: value,
-            },
-            { onConflict: 'scorecard_id,hole_number' }
-          );
+        setSaveStatus('saving');
+        const { error: saveError } = await supabase
+          .from('hole_scores')
+          .update({ [field]: value })
+          .eq('scorecard_id', scorecardId)
+          .eq('hole_number', currentHole);
 
-          // If par was changed, sync it back to course_holes for future rounds
-          if (field === 'par' && courseId) {
-            await supabase.from('course_holes').upsert(
-              {
-                course_id: courseId,
-                hole_number: currentHole,
-                par: value as number,
-              },
-              { onConflict: 'course_id,hole_number' }
-            );
-          }
-
-          setSaveStatus('saved');
-          setTimeout(() => setSaveStatus('idle'), 1500);
-        } catch {
+        if (saveError) {
+          console.error('Save failed:', field, value, saveError.message);
           setSaveStatus('idle');
+          return;
         }
+
+        // If par was changed, sync it back to course_holes for future rounds
+        if (field === 'par' && courseId) {
+          await supabase
+            .from('course_holes')
+            .update({ par: value as number })
+            .eq('course_id', courseId)
+            .eq('hole_number', currentHole);
+        }
+
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 1500);
       };
 
       pendingSave.current = doSave;
@@ -161,7 +157,7 @@ export default function RoundScoringPage() {
         pendingSave.current = null;
       }, 100);
     },
-    [currentHole, scorecardId, supabase]
+    [currentHole, scorecardId, courseId, supabase]
   );
 
   // Auto-set score to par if the user didn't explicitly change it
@@ -176,10 +172,13 @@ export default function RoundScoringPage() {
         )
       );
       // Save to DB
-      await supabase.from('hole_scores').upsert(
-        { scorecard_id: scorecardId, hole_number: currentHole, score: par },
-        { onConflict: 'scorecard_id,hole_number' }
-      );
+      const { error } = await supabase
+        .from('hole_scores')
+        .update({ score: par })
+        .eq('scorecard_id', scorecardId)
+        .eq('hole_number', currentHole);
+
+      if (error) console.error('Auto-save par failed:', error.message);
     }
   }, [holeScores, currentHole, scorecardId, supabase]);
 
