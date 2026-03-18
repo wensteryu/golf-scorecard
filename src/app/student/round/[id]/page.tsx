@@ -73,17 +73,29 @@ export default function RoundScoringPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scorecardId]);
 
-  // Flush pending saves on unmount
+  // Save immediately on page hide/unload (covers swipe-down, tab close, etc.)
   useEffect(() => {
-    return () => {
-      if (saveTimeout.current) {
-        clearTimeout(saveTimeout.current);
-      }
-      // Fire pending save immediately so data is not lost on navigation
+    const flushOnHide = () => {
       if (pendingSave.current) {
         pendingSave.current();
         pendingSave.current = null;
       }
+    };
+
+    const handleBeforeUnload = () => flushOnHide();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flushOnHide();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handleBeforeUnload);
+
+    return () => {
+      flushOnHide();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handleBeforeUnload);
     };
   }, []);
 
@@ -107,9 +119,10 @@ export default function RoundScoringPage() {
         )
       );
 
-      // Build the save function so it can be flushed immediately on navigation
+      // Save to Supabase immediately (no debounce — prevents data loss on swipe)
       const doSave = async () => {
         try {
+          setSaveStatus('saving');
           await supabase.from('hole_scores').upsert(
             {
               scorecard_id: scorecardId,
@@ -127,13 +140,12 @@ export default function RoundScoringPage() {
 
       pendingSave.current = doSave;
 
-      // Debounce save to Supabase
-      setSaveStatus('saving');
+      // Small debounce (100ms) to batch rapid taps, but short enough to not lose data
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       saveTimeout.current = setTimeout(async () => {
         await doSave();
         pendingSave.current = null;
-      }, 300);
+      }, 100);
     },
     [currentHole, scorecardId, supabase]
   );
