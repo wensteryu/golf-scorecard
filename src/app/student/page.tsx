@@ -173,11 +173,30 @@ export default function StudentDashboard() {
             <div className="flex flex-col gap-3">
               {inProgress.map((sc) => {
                 const holesCompleted = sc.hole_scores?.filter((h) => h.score !== null).length ?? 0;
+                const allHolesDone = holesCompleted === 18;
+
+                // Smart resume: if all holes scored, go to review/reflect/summary
+                // If reflections filled, go to summary. If review done, go to reflect.
+                let continueLink = `/student/round/${sc.id}`;
+                let continueLabel = 'Continue scoring';
+                if (allHolesDone) {
+                  if (sc.reflections || sc.mentality_rating) {
+                    continueLink = `/student/round/${sc.id}/summary`;
+                    continueLabel = 'View summary';
+                  } else if (sc.hundred_yards_in !== null) {
+                    continueLink = `/student/round/${sc.id}/reflect`;
+                    continueLabel = 'Continue reflections';
+                  } else {
+                    continueLink = `/student/round/${sc.id}/review`;
+                    continueLabel = 'Review round';
+                  }
+                }
+
                 return (
                   <Card key={sc.id} className="relative hover:shadow-md transition-shadow">
                     <CardBody>
                       <div className="flex items-center justify-between">
-                        <Link href={`/student/round/${sc.id}`} className="flex-1">
+                        <Link href={continueLink} className="flex-1">
                           <div>
                             <p className="font-bold text-golf-gray-500">
                               {sc.course?.name ?? 'Unknown Course'}
@@ -187,15 +206,19 @@ export default function StudentDashboard() {
                               <p className="text-xs text-golf-gray-300">
                                 {formatDate(sc.round_date)}
                               </p>
-                              <span className="text-xs font-bold text-golf-blue bg-golf-blue/10 px-2 py-0.5 rounded-full">
-                                Hole {holesCompleted}/18
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                                allHolesDone
+                                  ? 'text-golf-green bg-golf-green/10'
+                                  : 'text-golf-blue bg-golf-blue/10'
+                              }`}>
+                                {allHolesDone ? '18/18 ✓' : `Hole ${holesCompleted}/18`}
                               </span>
                             </div>
                           </div>
                         </Link>
                         <div className="flex items-center gap-3">
-                          <Link href={`/student/round/${sc.id}`} className="text-sm font-bold text-golf-green">
-                            Continue &rarr;
+                          <Link href={continueLink} className="text-sm font-bold text-golf-green whitespace-nowrap">
+                            {allHolesDone ? continueLabel : 'Continue'} &rarr;
                           </Link>
                           <button
                             type="button"
