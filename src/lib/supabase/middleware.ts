@@ -44,7 +44,7 @@ export async function updateSession(request: NextRequest) {
         .from('profiles')
         .select('role')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile) {
         const url = request.nextUrl.clone();
@@ -52,8 +52,13 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
 
+      // Admin goes to student by default (can switch via toggle)
       const url = request.nextUrl.clone();
-      url.pathname = profile.role === 'coach' ? '/coach' : '/student';
+      if (isAdmin(user.email)) {
+        url.pathname = '/student';
+      } else {
+        url.pathname = profile.role === 'coach' ? '/coach' : '/student';
+      }
       return NextResponse.redirect(url);
     }
     return supabaseResponse;
@@ -76,7 +81,7 @@ export async function updateSession(request: NextRequest) {
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (!profile) {
     const url = request.nextUrl.clone();

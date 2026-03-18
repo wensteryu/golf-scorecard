@@ -19,50 +19,68 @@ export default function OnboardingPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      setError('You must be logged in to complete onboarding.');
-      setLoading(false);
-      return;
-    }
-
-    // If student, auto-link to the coach (single-coach model)
-    let coachId: string | null = null;
-    if (role === 'student') {
-      const { data: coach } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('role', 'coach')
-        .limit(1)
-        .single();
-
-      if (coach) {
-        coachId = coach.id;
+      if (!user) {
+        setError('You must be logged in. Please go back and sign in again.');
+        setLoading(false);
+        return;
       }
-    }
 
-    // Create profile
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: user.id,
-      email: user.email!,
-      full_name: fullName.trim(),
-      role: role!,
-      coach_id: coachId,
-      invite_code: null,
-    });
+      // Check if profile already exists (from a previous attempt)
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
 
-    if (profileError) {
-      setError('Failed to create profile. Please try again.');
+      if (existingProfile) {
+        // Profile already exists — just redirect
+        router.push(existingProfile.role === 'coach' ? '/coach' : '/student');
+        return;
+      }
+
+      // If student, try to find the coach (single-coach model)
+      let coachId: string | null = null;
+      if (role === 'student') {
+        const { data: coaches } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'coach')
+          .limit(1);
+
+        if (coaches && coaches.length > 0) {
+          coachId = coaches[0].id;
+        }
+      }
+
+      // Create profile
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: user.id,
+        email: user.email ?? '',
+        full_name: fullName.trim(),
+        role: role!,
+        coach_id: coachId,
+      });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        setError(`Error: ${profileError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      router.push(role === 'coach' ? '/coach' : '/student');
+    } catch (err) {
+      console.error('Onboarding error:', err);
+      setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
-      return;
     }
-
-    router.push(role === 'coach' ? '/coach' : '/student');
   };
 
   const canAdvance = () => {
