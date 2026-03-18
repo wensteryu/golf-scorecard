@@ -9,6 +9,7 @@ interface HoleInputProps {
   hole: HoleScore;
   par: number;
   onUpdate: (field: string, value: unknown) => void;
+  saveStatus?: 'saved' | 'saving' | 'idle';
 }
 
 const fairwayOptions = [
@@ -30,7 +31,7 @@ const yesNoOptions = [
   { label: 'No', value: 'no' },
 ];
 
-export function HoleInput({ hole, par: initialPar, onUpdate }: HoleInputProps) {
+export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle' }: HoleInputProps) {
   const par = hole.par ?? initialPar;
   const score = hole.score ?? par;
   const scoreDiff = score - par;
@@ -44,6 +45,23 @@ export function HoleInput({ hole, par: initialPar, onUpdate }: HoleInputProps) {
 
   return (
     <div className="flex flex-col gap-6 pb-8">
+      {/* Save indicator */}
+      <div className="flex justify-center h-6">
+        {saveStatus === 'saved' && (
+          <span className="inline-flex items-center gap-1 bg-golf-green/10 text-golf-green text-xs font-bold px-3 py-1 rounded-full animate-[fadeInOut_1.5s_ease-in-out]">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3">
+              <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 01.208 1.04l-5 7.5a.75.75 0 01-1.154.114l-3-3a.75.75 0 011.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 011.04-.207z" clipRule="evenodd" />
+            </svg>
+            Saved
+          </span>
+        )}
+        {saveStatus === 'saving' && (
+          <span className="inline-flex items-center gap-1 bg-golf-gray-100 text-golf-gray-400 text-xs font-bold px-3 py-1 rounded-full">
+            Saving...
+          </span>
+        )}
+      </div>
+
       {/* Hole Header */}
       <div className="flex flex-col items-center gap-2">
         <div className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide">

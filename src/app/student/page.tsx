@@ -112,6 +112,12 @@ export default function StudentDashboard() {
     );
   }
 
+  async function handleDeleteRound(id: string) {
+    if (!window.confirm('Delete this round? This cannot be undone.')) return;
+    await supabase.from('scorecards').delete().eq('id', id);
+    setScorecards((prev) => prev.filter((s) => s.id !== id));
+  }
+
   const inProgress = scorecards.filter((s) => s.status === 'in_progress');
   const submitted = scorecards.filter((s) => s.status === 'submitted');
   const reviewed = scorecards.filter((s) => s.status === 'reviewed');
@@ -165,28 +171,52 @@ export default function StudentDashboard() {
               In Progress
             </h2>
             <div className="flex flex-col gap-3">
-              {inProgress.map((sc) => (
-                <Link key={sc.id} href={`/student/round/${sc.id}`}>
-                  <Card className="hover:shadow-md transition-shadow">
+              {inProgress.map((sc) => {
+                const holesCompleted = sc.hole_scores?.filter((h) => h.score !== null).length ?? 0;
+                return (
+                  <Card key={sc.id} className="relative hover:shadow-md transition-shadow">
                     <CardBody>
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-golf-gray-500">
-                            {sc.course?.name ?? 'Unknown Course'}
-                          </p>
-                          <p className="text-sm text-golf-gray-400">{sc.tournament_name}</p>
-                          <p className="text-xs text-golf-gray-300 mt-1">
-                            {formatDate(sc.round_date)}
-                          </p>
+                        <Link href={`/student/round/${sc.id}`} className="flex-1">
+                          <div>
+                            <p className="font-bold text-golf-gray-500">
+                              {sc.course?.name ?? 'Unknown Course'}
+                            </p>
+                            <p className="text-sm text-golf-gray-400">{sc.tournament_name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-xs text-golf-gray-300">
+                                {formatDate(sc.round_date)}
+                              </p>
+                              <span className="text-xs font-bold text-golf-blue bg-golf-blue/10 px-2 py-0.5 rounded-full">
+                                Hole {holesCompleted}/18
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                        <div className="flex items-center gap-3">
+                          <Link href={`/student/round/${sc.id}`} className="text-sm font-bold text-golf-green">
+                            Continue &rarr;
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteRound(sc.id);
+                            }}
+                            className="p-2 text-golf-gray-300 hover:text-golf-red transition-colors cursor-pointer"
+                            aria-label="Delete round"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                              <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                            </svg>
+                          </button>
                         </div>
-                        <span className="text-sm font-bold text-golf-green">
-                          Continue &rarr;
-                        </span>
                       </div>
                     </CardBody>
                   </Card>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}

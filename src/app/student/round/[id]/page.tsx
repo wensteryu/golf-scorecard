@@ -302,6 +302,7 @@ export default function RoundScoringPage() {
             hole={currentHoleScore}
             par={currentCourseHole.par}
             onUpdate={handleFieldChange}
+            saveStatus={saveStatus}
           />
         )}
       </div>

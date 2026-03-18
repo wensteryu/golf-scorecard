@@ -55,3 +55,10 @@ html, body {
 .animate-celebrate {
   animation: celebrate-bounce 0.6s ease-in-out;
 }
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-4px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
