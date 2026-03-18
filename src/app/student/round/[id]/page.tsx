@@ -18,6 +18,7 @@ export default function RoundScoringPage() {
 
   const [holeScores, setHoleScores] = useState<HoleScore[]>([]);
   const [courseHoles, setCourseHoles] = useState<CourseHole[]>([]);
+  const [courseId, setCourseId] = useState<string | null>(null);
   const [currentHole, setCurrentHole] = useState(1);
   const [showCelebration, setShowCelebration] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -56,6 +57,7 @@ export default function RoundScoringPage() {
 
         setHoleScores(sortedScores);
         setCourseHoles(holes as CourseHole[]);
+        setCourseId(scorecard.course_id);
 
         // Find the first hole without a score to resume from
         const firstIncomplete = sortedScores.find((h) => h.score === null);
@@ -131,6 +133,19 @@ export default function RoundScoringPage() {
             },
             { onConflict: 'scorecard_id,hole_number' }
           );
+
+          // If par was changed, sync it back to course_holes for future rounds
+          if (field === 'par' && courseId) {
+            await supabase.from('course_holes').upsert(
+              {
+                course_id: courseId,
+                hole_number: currentHole,
+                par: value as number,
+              },
+              { onConflict: 'course_id,hole_number' }
+            );
+          }
+
           setSaveStatus('saved');
           setTimeout(() => setSaveStatus('idle'), 1500);
         } catch {
