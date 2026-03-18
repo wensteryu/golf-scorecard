@@ -7,6 +7,8 @@ import { Profile, Scorecard } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { RoleSwitcher } from '@/components/ui/role-switcher';
+import { isAdmin } from '@/lib/admin';
 
 export default function CoachDashboardPage() {
   const router = useRouter();
@@ -208,6 +210,7 @@ export default function CoachDashboardPage() {
           Sign Out
         </Button>
       </div>
+      {profile && isAdmin(profile.email) && <RoleSwitcher />}
     </div>
   );
 }

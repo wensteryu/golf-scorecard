@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { isAdmin } from '@/lib/admin';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -83,7 +84,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Enforce role-based routing
+  // Admin users can access both views
+  if (isAdmin(user.email)) {
+    return supabaseResponse;
+  }
+
+  // Enforce role-based routing for non-admins
   if (pathname.startsWith('/coach') && profile.role !== 'coach') {
     const url = request.nextUrl.clone();
     url.pathname = '/student';
