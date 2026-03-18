@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Scorecard, HoleScore, ScorecardStatus, MentalityRating } from '@/lib/types';
 import { calculateStats, formatScoreToPar } from '@/lib/calculations';
@@ -151,14 +152,10 @@ export default function SummaryPage() {
 
       setScorecard((prev) => (prev ? { ...prev, status: 'submitted' } : prev));
       setShowConfetti(true);
-
-      setTimeout(() => {
-        router.push('/student');
-      }, 2000);
     } catch {
       setSubmitting(false);
     }
-  }, [scorecard, submitting, scorecardId, supabase, router]);
+  }, [scorecard, submitting, scorecardId, supabase]);
 
   if (loading) {
     return (
@@ -210,17 +207,13 @@ export default function SummaryPage() {
       {showConfetti && <ConfettiOverlay />}
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
-        <div className="flex items-center justify-between max-w-lg mx-auto">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center cursor-pointer"
-          >
-            &larr; Back
-          </button>
-          <h1 className="text-lg font-bold text-golf-gray-500">Round Summary</h1>
-          <div className="w-12" />
+      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <Link href="/student" className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center">
+            &larr; Home
+          </Link>
+          <h1 className="text-lg font-extrabold text-golf-gray-500">Summary</h1>
+          <div className="w-16" />
         </div>
       </div>
 
@@ -482,7 +475,7 @@ export default function SummaryPage() {
 
       {/* Action Button */}
       <div className="sticky bottom-0 bg-white border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg mx-auto space-y-3">
           {scorecard.status === 'in_progress' && (
             <Button
               variant="primary"
@@ -495,21 +488,27 @@ export default function SummaryPage() {
             </Button>
           )}
 
-          {scorecard.status === 'submitted' && !showConfetti && (
-            <Button variant="secondary" size="lg" className="w-full" disabled>
-              Awaiting Review
-            </Button>
+          {scorecard.status === 'submitted' && (
+            <>
+              {showConfetti && (
+                <p className="text-center text-sm font-bold text-golf-green">
+                  Submitted! Your coach will review your round.
+                </p>
+              )}
+              <Link href="/student" className="block">
+                <Button variant="primary" size="lg" className="w-full">
+                  Back to Dashboard
+                </Button>
+              </Link>
+            </>
           )}
 
           {scorecard.status === 'reviewed' && (
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              onClick={() => router.push('/student')}
-            >
-              Back to Dashboard
-            </Button>
+            <Link href="/student" className="block">
+              <Button variant="primary" size="lg" className="w-full">
+                Back to Dashboard
+              </Button>
+            </Link>
           )}
         </div>
       </div>

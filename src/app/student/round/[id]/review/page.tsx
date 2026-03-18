@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { HoleScore } from '@/lib/types';
 import { scoreColor, formatScoreToPar } from '@/lib/calculations';
@@ -139,17 +140,13 @@ export default function ReviewPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50 flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
-        <div className="flex items-center justify-between max-w-lg mx-auto">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center cursor-pointer"
-          >
-            &larr; Back
-          </button>
-          <h1 className="text-lg font-bold text-golf-gray-500">Review Scorecard</h1>
-          <div className="w-12" />
+      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <Link href="/student" className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center">
+            &larr; Home
+          </Link>
+          <h1 className="text-lg font-extrabold text-golf-gray-500">Review</h1>
+          <div className="w-16" />
         </div>
       </div>
 

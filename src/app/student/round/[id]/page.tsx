@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { HoleScore, CourseHole } from '@/lib/types';
 import { HoleInput } from '@/components/scorecard/hole-input';
@@ -24,6 +25,7 @@ export default function RoundScoringPage() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
 
   const saveTimeout = useRef<NodeJS.Timeout>(null);
+  const pendingSave = useRef<(() => Promise<void>) | null>(null);
 
   // Fetch scorecard data on mount
   useEffect(() => {
@@ -71,13 +73,29 @@ export default function RoundScoringPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scorecardId]);
 
-  // Cleanup timeout on unmount
+  // Flush pending saves on unmount
   useEffect(() => {
     return () => {
       if (saveTimeout.current) {
         clearTimeout(saveTimeout.current);
       }
+      // Fire pending save immediately so data is not lost on navigation
+      if (pendingSave.current) {
+        pendingSave.current();
+        pendingSave.current = null;
+      }
     };
+  }, []);
+
+  const flushPendingSave = useCallback(async () => {
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+      saveTimeout.current = null;
+    }
+    if (pendingSave.current) {
+      await pendingSave.current();
+      pendingSave.current = null;
+    }
   }, []);
 
   const handleFieldChange = useCallback(
@@ -89,10 +107,8 @@ export default function RoundScoringPage() {
         )
       );
 
-      // Debounce save to Supabase
-      setSaveStatus('saving');
-      if (saveTimeout.current) clearTimeout(saveTimeout.current);
-      saveTimeout.current = setTimeout(async () => {
+      // Build the save function so it can be flushed immediately on navigation
+      const doSave = async () => {
         try {
           await supabase.from('hole_scores').upsert(
             {
@@ -103,18 +119,30 @@ export default function RoundScoringPage() {
             { onConflict: 'scorecard_id,hole_number' }
           );
           setSaveStatus('saved');
-          // Reset to idle after a short delay
           setTimeout(() => setSaveStatus('idle'), 1500);
         } catch {
           setSaveStatus('idle');
         }
+      };
+
+      pendingSave.current = doSave;
+
+      // Debounce save to Supabase
+      setSaveStatus('saving');
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(async () => {
+        await doSave();
+        pendingSave.current = null;
       }, 300);
     },
     [currentHole, scorecardId, supabase]
   );
 
-  function goToHole(holeNumber: number) {
+  async function goToHole(holeNumber: number) {
     if (holeNumber < 1 || holeNumber > 18) return;
+
+    // Flush any pending save before switching holes
+    await flushPendingSave();
 
     // Show celebration after completing hole 9
     if (currentHole === 9 && holeNumber === 10) {
@@ -130,7 +158,8 @@ export default function RoundScoringPage() {
     setCurrentHole(10);
   }
 
-  function handleReviewRound() {
+  async function handleReviewRound() {
+    await flushPendingSave();
     router.push(`/student/round/${scorecardId}/review`);
   }
 
@@ -179,14 +208,17 @@ export default function RoundScoringPage() {
       {/* Top bar with progress and save status */}
       <div className="sticky top-0 z-10 bg-white border-b border-golf-gray-100 px-4 pt-4 pb-3 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center cursor-pointer"
+          <Link
+            href="/student"
+            onClick={() => { flushPendingSave(); }}
+            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center"
           >
-            &larr; Exit
-          </button>
-          <div className="text-sm font-bold text-golf-gray-300">
+            &larr; Home
+          </Link>
+          <h1 className="text-lg font-extrabold text-golf-gray-500">
+            Hole {currentHole} of 18
+          </h1>
+          <div className="text-sm font-bold text-golf-gray-300 w-16 text-right">
             {saveStatus === 'saving' && 'Saving...'}
             {saveStatus === 'saved' && 'Saved'}
           </div>
