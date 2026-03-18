@@ -30,7 +30,8 @@ const yesNoOptions = [
   { label: 'No', value: 'no' },
 ];
 
-export function HoleInput({ hole, par, onUpdate }: HoleInputProps) {
+export function HoleInput({ hole, par: initialPar, onUpdate }: HoleInputProps) {
+  const par = hole.par ?? initialPar;
   const score = hole.score ?? par;
   const scoreDiff = score - par;
   const colorClass = scoreColor(hole.score, par);
@@ -44,12 +45,27 @@ export function HoleInput({ hole, par, onUpdate }: HoleInputProps) {
   return (
     <div className="flex flex-col gap-6 pb-8">
       {/* Hole Header */}
-      <div className="text-center">
+      <div className="flex flex-col items-center gap-2">
         <div className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide">
           Hole {hole.hole_number}
         </div>
-        <div className="text-lg font-bold text-golf-gray-500">
-          Par {par}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-golf-gray-400">Par</span>
+          {[3, 4, 5].map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => onUpdate('par', p)}
+              className={[
+                'w-11 h-11 rounded-xl font-bold text-lg transition-all cursor-pointer',
+                par === p
+                  ? 'bg-golf-green text-white border-b-3 border-golf-green-dark'
+                  : 'bg-golf-gray-100 text-golf-gray-400 border-b-3 border-golf-gray-200 hover:bg-golf-gray-200',
+              ].join(' ')}
+            >
+              {p}
+            </button>
+          ))}
         </div>
       </div>
 
