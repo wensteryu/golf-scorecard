@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { HoleScore, CourseHole } from '@/lib/types';
 import { HoleInput } from '@/components/scorecard/hole-input';
@@ -258,13 +257,17 @@ export default function RoundScoringPage() {
       {/* Top bar with progress and save status */}
       <div className="sticky top-0 z-10 bg-white border-b border-golf-gray-100 px-4 pt-4 pb-3 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <Link
-            href="/student"
-            onClick={() => { autoSaveCurrentHoleScore(); flushPendingSave(); }}
-            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center"
+          <button
+            type="button"
+            onClick={async () => {
+              await autoSaveCurrentHoleScore();
+              await flushPendingSave();
+              router.push('/student');
+            }}
+            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center cursor-pointer"
           >
             &larr; Home
-          </Link>
+          </button>
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Elite Golf Realm" className="h-7 w-auto object-contain" />
             <h1 className="text-base font-extrabold text-golf-gray-500">
