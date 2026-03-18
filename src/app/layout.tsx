@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Golf Scorecard',
-  description: 'Digital golf scorecard for student athletes and coaches',
+  title: 'Elite Golf Realm',
+  description: 'Digital golf scorecard for Elite Golf Realm athletes and coaches',
 };
 
 export const viewport: Viewport = {

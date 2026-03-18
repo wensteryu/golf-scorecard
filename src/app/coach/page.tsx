@@ -95,9 +95,12 @@ export default function CoachDashboardPage() {
       <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-extrabold text-golf-gray-500">
-              Coach Dashboard
-            </h1>
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Elite Golf Realm" className="h-10 w-auto object-contain" />
+              <h1 className="text-lg font-extrabold text-golf-gray-500">
+                Coach Dashboard
+              </h1>
+            </div>
             {profile && <NotificationBell userId={profile.id} />}
           </div>
 

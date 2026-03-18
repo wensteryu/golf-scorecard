@@ -119,9 +119,9 @@ export default function OnboardingPage() {
           {/* Step 1: Name */}
           {step === 1 && (
             <div>
-              <div className="mb-4 text-center text-4xl">👋</div>
+              <img src="/logo.png" alt="Elite Golf Realm" className="mx-auto mb-3 h-20 w-auto object-contain" />
               <h2 className="mb-1 text-center text-xl font-bold text-golf-gray-500">
-                Welcome to Golf Scorecard!
+                Welcome!
               </h2>
               <p className="mb-6 text-center text-sm text-golf-gray-400">
                 Let&apos;s get you set up. What&apos;s your name?

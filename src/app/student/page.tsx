@@ -121,11 +121,14 @@ export default function StudentDashboard() {
       {/* Header */}
       <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-extrabold text-golf-gray-500">My Rounds</h1>
-            {profile && (
-              <p className="text-sm text-golf-gray-400 font-semibold">{profile.full_name}</p>
-            )}
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Elite Golf Realm" className="h-10 w-auto object-contain" />
+            <div>
+              <h1 className="text-lg font-extrabold text-golf-gray-500">My Rounds</h1>
+              {profile && (
+                <p className="text-xs text-golf-gray-400 font-semibold">{profile.full_name}</p>
+              )}
+            </div>
           </div>
           {profile && <NotificationBell userId={profile.id} />}
         </div>

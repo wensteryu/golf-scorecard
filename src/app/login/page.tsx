@@ -56,11 +56,12 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo / Header */}
         <div className="mb-8 text-center">
-          <div className="mb-4 text-6xl">⛳</div>
-          <h1 className="text-3xl font-bold text-golf-gray-500">
-            Golf Scorecard
-          </h1>
-          <p className="mt-2 text-golf-gray-400">
+          <img
+            src="/logo.png"
+            alt="Elite Golf Realm"
+            className="mx-auto mb-2 h-28 w-auto object-contain"
+          />
+          <p className="mt-1 text-sm text-golf-gray-400">
             Track your rounds. Improve your game.
           </p>
         </div>

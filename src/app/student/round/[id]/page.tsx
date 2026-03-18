@@ -227,9 +227,12 @@ export default function RoundScoringPage() {
           >
             &larr; Home
           </Link>
-          <h1 className="text-lg font-extrabold text-golf-gray-500">
-            Hole {currentHole} of 18
-          </h1>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Elite Golf Realm" className="h-7 w-auto object-contain" />
+            <h1 className="text-base font-extrabold text-golf-gray-500">
+              Hole {currentHole} / 18
+            </h1>
+          </div>
           <div className="text-sm font-bold text-golf-gray-300 w-16 text-right">
             {saveStatus === 'saving' && 'Saving...'}
             {saveStatus === 'saved' && 'Saved'}
