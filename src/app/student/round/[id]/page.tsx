@@ -150,8 +150,30 @@ export default function RoundScoringPage() {
     [currentHole, scorecardId, supabase]
   );
 
+  // Auto-set score to par if the user didn't explicitly change it
+  const autoSaveCurrentHoleScore = useCallback(async () => {
+    const hole = holeScores.find((h) => h.hole_number === currentHole);
+    if (hole && hole.score === null) {
+      const par = hole.par;
+      // Update local state
+      setHoleScores((prev) =>
+        prev.map((h) =>
+          h.hole_number === currentHole ? { ...h, score: par } : h
+        )
+      );
+      // Save to DB
+      await supabase.from('hole_scores').upsert(
+        { scorecard_id: scorecardId, hole_number: currentHole, score: par },
+        { onConflict: 'scorecard_id,hole_number' }
+      );
+    }
+  }, [holeScores, currentHole, scorecardId, supabase]);
+
   async function goToHole(holeNumber: number) {
     if (holeNumber < 1 || holeNumber > 18) return;
+
+    // Auto-save par as score if student didn't change it
+    await autoSaveCurrentHoleScore();
 
     // Flush any pending save before switching holes
     await flushPendingSave();
@@ -171,6 +193,7 @@ export default function RoundScoringPage() {
   }
 
   async function handleReviewRound() {
+    await autoSaveCurrentHoleScore();
     await flushPendingSave();
     router.push(`/student/round/${scorecardId}/review`);
   }
@@ -222,7 +245,7 @@ export default function RoundScoringPage() {
         <div className="flex items-center justify-between mb-3">
           <Link
             href="/student"
-            onClick={() => { flushPendingSave(); }}
+            onClick={() => { autoSaveCurrentHoleScore(); flushPendingSave(); }}
             className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center"
           >
             &larr; Home
@@ -242,6 +265,7 @@ export default function RoundScoringPage() {
           currentHole={currentHole}
           holeScores={holeScores}
           onHoleClick={async (hole) => {
+            await autoSaveCurrentHoleScore();
             await flushPendingSave();
             setCurrentHole(hole);
           }}
