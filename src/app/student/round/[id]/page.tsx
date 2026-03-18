@@ -223,7 +223,14 @@ export default function RoundScoringPage() {
             {saveStatus === 'saved' && 'Saved'}
           </div>
         </div>
-        <ProgressBar currentHole={currentHole} />
+        <ProgressBar
+          currentHole={currentHole}
+          holeScores={holeScores}
+          onHoleClick={async (hole) => {
+            await flushPendingSave();
+            setCurrentHole(hole);
+          }}
+        />
       </div>
 
       {/* Main content */}
