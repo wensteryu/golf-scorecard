@@ -379,6 +379,15 @@ export default function RoundScoringPage() {
               </Button>
             )}
           </div>
+          {currentHole < holeScores.length && (
+            <button
+              type="button"
+              onClick={handleReviewRound}
+              className="w-full mt-2 text-center text-xs font-bold text-golf-gray-300 hover:text-golf-gray-400 cursor-pointer py-1"
+            >
+              Skip remaining holes &amp; review &rarr;
+            </button>
+          )}
         </div>
       )}
     </div>
