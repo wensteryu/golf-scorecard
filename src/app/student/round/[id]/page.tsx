@@ -25,7 +25,7 @@ export default function RoundScoringPage() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
 
   const saveTimeout = useRef<NodeJS.Timeout>(null);
-  const pendingSave = useRef<(() => Promise<void>) | null>(null);
+  const pendingChanges = useRef<Record<string, unknown>>({});
 
   // Fetch scorecard data on mount
   useEffect(() => {
@@ -74,12 +74,63 @@ export default function RoundScoringPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scorecardId]);
 
+  // Flush all accumulated changes to Supabase
+  const flushPendingSave = useCallback(async () => {
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+      saveTimeout.current = null;
+    }
+    const changes = { ...pendingChanges.current };
+    pendingChanges.current = {};
+    if (Object.keys(changes).length === 0) return;
+
+    setSaveStatus('saving');
+    const { error: saveError } = await supabase
+      .from('hole_scores')
+      .update(changes)
+      .eq('scorecard_id', scorecardId)
+      .eq('hole_number', currentHole);
+
+    if (saveError) {
+      console.error('Save failed:', changes, saveError.message);
+      setSaveStatus('idle');
+      return;
+    }
+
+    if ('par' in changes && courseId) {
+      await supabase
+        .from('course_holes')
+        .update({ par: changes.par as number })
+        .eq('course_id', courseId)
+        .eq('hole_number', currentHole);
+    }
+
+    setSaveStatus('saved');
+    setTimeout(() => setSaveStatus('idle'), 1500);
+  }, [currentHole, scorecardId, courseId, supabase]);
+
   // Save immediately on page hide/unload (covers swipe-down, tab close, etc.)
   useEffect(() => {
     const flushOnHide = () => {
-      if (pendingSave.current) {
-        pendingSave.current();
-        pendingSave.current = null;
+      if (Object.keys(pendingChanges.current).length > 0) {
+        const changes = { ...pendingChanges.current };
+        pendingChanges.current = {};
+        // Use sendBeacon for reliability during page unload
+        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/hole_scores?scorecard_id=eq.${scorecardId}&hole_number=eq.${currentHole}`;
+        const blob = new Blob([JSON.stringify(changes)], { type: 'application/json' });
+        const headers = {
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        };
+        // sendBeacon doesn't support custom headers, fall back to fetch keepalive
+        fetch(url, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify(changes),
+          keepalive: true,
+        }).catch(() => {});
       }
     };
 
@@ -98,18 +149,7 @@ export default function RoundScoringPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handleBeforeUnload);
     };
-  }, []);
-
-  const flushPendingSave = useCallback(async () => {
-    if (saveTimeout.current) {
-      clearTimeout(saveTimeout.current);
-      saveTimeout.current = null;
-    }
-    if (pendingSave.current) {
-      await pendingSave.current();
-      pendingSave.current = null;
-    }
-  }, []);
+  }, [scorecardId, currentHole]);
 
   const handleFieldChange = useCallback(
     (field: string, value: unknown) => {
@@ -120,41 +160,38 @@ export default function RoundScoringPage() {
         )
       );
 
-      // Save to Supabase — use .update() since rows are pre-created
-      const doSave = async () => {
+      // Accumulate changes — multiple fields in same tick get batched
+      pendingChanges.current[field] = value;
+
+      // Debounce: wait 100ms to batch rapid changes, then save all at once
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(async () => {
+        const changes = { ...pendingChanges.current };
+        pendingChanges.current = {};
+
         setSaveStatus('saving');
         const { error: saveError } = await supabase
           .from('hole_scores')
-          .update({ [field]: value })
+          .update(changes)
           .eq('scorecard_id', scorecardId)
           .eq('hole_number', currentHole);
 
         if (saveError) {
-          console.error('Save failed:', field, value, saveError.message);
+          console.error('Save failed:', changes, saveError.message);
           setSaveStatus('idle');
           return;
         }
 
-        // If par was changed, sync it back to course_holes for future rounds
-        if (field === 'par' && courseId) {
+        if ('par' in changes && courseId) {
           await supabase
             .from('course_holes')
-            .update({ par: value as number })
+            .update({ par: changes.par as number })
             .eq('course_id', courseId)
             .eq('hole_number', currentHole);
         }
 
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 1500);
-      };
-
-      pendingSave.current = doSave;
-
-      // Small debounce (100ms) to batch rapid taps, but short enough to not lose data
-      if (saveTimeout.current) clearTimeout(saveTimeout.current);
-      saveTimeout.current = setTimeout(async () => {
-        await doSave();
-        pendingSave.current = null;
       }, 100);
     },
     [currentHole, scorecardId, courseId, supabase]
