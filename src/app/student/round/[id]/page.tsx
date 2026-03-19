@@ -291,7 +291,7 @@ export default function RoundScoringPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50 flex flex-col">
       {/* Top bar with progress and save status */}
-      <div className="sticky top-0 z-10 bg-white border-b border-golf-gray-100 px-4 pt-4 pb-3 shadow-sm">
+      <div className="sticky top-0 z-10 bg-surface border-b border-golf-gray-100 px-4 pt-4 pb-3 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <button
             type="button"
@@ -346,7 +346,7 @@ export default function RoundScoringPage() {
 
       {/* Bottom navigation */}
       {!showCelebration && (
-        <div className="sticky bottom-0 bg-white border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <div className="sticky bottom-0 bg-surface border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
           <div className="max-w-lg mx-auto flex gap-3">
             <Button
               variant="ghost"

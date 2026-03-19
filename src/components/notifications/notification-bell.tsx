@@ -99,7 +99,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-lg border border-golf-gray-100 z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-surface rounded-2xl shadow-lg border border-golf-gray-100 z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-golf-gray-100">
             <span className="font-bold text-golf-gray-500">Notifications</span>

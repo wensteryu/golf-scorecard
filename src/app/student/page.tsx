@@ -10,6 +10,7 @@ import { Card, CardBody } from '@/components/ui/card';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { RoleSwitcher } from '@/components/ui/role-switcher';
 import { isAdmin } from '@/lib/admin';
+import { ThemeToggle } from '@/lib/theme';
 import Link from 'next/link';
 
 export default function StudentDashboard() {
@@ -125,7 +126,7 @@ export default function StudentDashboard() {
   return (
     <div className="min-h-screen bg-golf-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Elite Golf Realm" className="h-10 w-auto object-contain" />
@@ -362,8 +363,9 @@ export default function StudentDashboard() {
           </Link>
         )}
 
-        {/* Sign Out */}
-        <div className="pt-4 pb-8">
+        {/* Settings */}
+        <div className="pt-4 pb-8 flex flex-col items-center gap-2">
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="sm"

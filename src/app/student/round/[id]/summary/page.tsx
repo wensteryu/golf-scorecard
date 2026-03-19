@@ -207,7 +207,7 @@ export default function SummaryPage() {
       {showConfetti && <ConfettiOverlay />}
 
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <Link href="/student" className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center">
             &larr; Home
@@ -522,7 +522,7 @@ export default function SummaryPage() {
       </div>
 
       {/* Action Button */}
-      <div className="sticky bottom-0 bg-white border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <div className="sticky bottom-0 bg-surface border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div className="max-w-lg mx-auto space-y-3">
           {scorecard.status === 'in_progress' && (
             <Button

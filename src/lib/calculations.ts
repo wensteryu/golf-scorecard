@@ -115,11 +115,11 @@ export function calculateStats(holes: HoleScore[]): RoundStats {
 }
 
 export function scoreColor(score: number | null, par: number): string {
-  if (score === null) return 'bg-gray-100 text-gray-400';
+  if (score === null) return 'bg-golf-gray-100 text-golf-gray-300';
   const diff = score - par;
   if (diff <= -2) return 'bg-yellow-400 text-yellow-900'; // Eagle or better
   if (diff === -1) return 'bg-emerald-500 text-white'; // Birdie
-  if (diff === 0) return 'bg-gray-100 text-gray-800'; // Par
+  if (diff === 0) return 'bg-golf-gray-100 text-golf-gray-500'; // Par
   if (diff === 1) return 'bg-amber-200 text-amber-900'; // Bogey
   if (diff === 2) return 'bg-orange-300 text-orange-900'; // Double
   return 'bg-red-400 text-white'; // Triple+

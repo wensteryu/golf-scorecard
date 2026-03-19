@@ -139,7 +139,7 @@ export default function ReviewPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <Link href="/student" className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center">
             &larr; Home
@@ -153,7 +153,7 @@ export default function ReviewPage() {
       <div className="flex-1 px-2 py-4 max-w-lg mx-auto w-full overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="bg-golf-gray-500 text-white text-xs uppercase tracking-wide">
+            <tr className="bg-golf-accent text-white text-xs uppercase tracking-wide">
               <th className="px-2 py-2.5 text-left rounded-tl-lg">Hole</th>
               <th className="px-2 py-2.5 text-center">Par</th>
               <th className="px-2 py-2.5 text-center">Score</th>
@@ -171,7 +171,7 @@ export default function ReviewPage() {
                 onClick={() => handleRowTap(h.hole_number)}
                 className={[
                   'cursor-pointer active:bg-golf-gray-200 transition-colors',
-                  i % 2 === 0 ? 'bg-white' : 'bg-golf-gray-50',
+                  i % 2 === 0 ? 'bg-surface' : 'bg-golf-gray-50',
                 ].join(' ')}
               >
                 <td className="px-2 py-2.5 font-bold text-golf-gray-500">{h.hole_number}</td>
@@ -215,7 +215,7 @@ export default function ReviewPage() {
                 onClick={() => handleRowTap(h.hole_number)}
                 className={[
                   'cursor-pointer active:bg-golf-gray-200 transition-colors',
-                  i % 2 === 0 ? 'bg-white' : 'bg-golf-gray-50',
+                  i % 2 === 0 ? 'bg-surface' : 'bg-golf-gray-50',
                 ].join(' ')}
               >
                 <td className="px-2 py-2.5 font-bold text-golf-gray-500">{h.hole_number}</td>
@@ -253,7 +253,7 @@ export default function ReviewPage() {
             <SubtotalRow label="IN" stats={back9Stats} />
 
             {/* Total */}
-            <tr className="bg-golf-gray-500 text-white font-bold text-sm">
+            <tr className="bg-golf-accent text-white font-bold text-sm">
               <td className="px-2 py-3 rounded-bl-lg">TOT</td>
               <td className="px-2 py-3 text-center">{totalStats.par}</td>
               <td className="px-2 py-3 text-center">
@@ -276,7 +276,7 @@ export default function ReviewPage() {
       </div>
 
       {/* Bottom button */}
-      <div className="sticky bottom-0 bg-white border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <div className="sticky bottom-0 bg-surface border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div className="max-w-lg mx-auto">
           <Button
             variant="primary"

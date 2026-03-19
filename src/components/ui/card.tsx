@@ -12,7 +12,7 @@ export function Card({ children, className = '', ...props }: CardProps) {
   return (
     <div
       className={[
-        'bg-white rounded-2xl shadow-sm',
+        'bg-surface rounded-2xl shadow-sm',
         'border border-golf-gray-100',
         'overflow-hidden',
         className,

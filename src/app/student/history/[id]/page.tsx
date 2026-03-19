@@ -103,7 +103,7 @@ export default function ScorecardDetailPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             type="button"

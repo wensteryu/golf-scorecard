@@ -206,7 +206,7 @@ export default function NewScorecardPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             type="button"
@@ -237,7 +237,7 @@ export default function NewScorecardPage() {
                 id="course"
                 value={selectedCourseId}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 appearance-none cursor-pointer"
               >
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
@@ -256,7 +256,7 @@ export default function NewScorecardPage() {
                   onChange={(e) => setNewCourseName(e.target.value)}
                   placeholder="Course name"
                   autoFocus
-                  className="flex-1 px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold focus:border-golf-green focus:outline-none min-h-[48px]"
+                  className="flex-1 px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-semibold focus:border-golf-green focus:outline-none min-h-[48px]"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -307,7 +307,7 @@ export default function NewScorecardPage() {
               value={tournamentName}
               onChange={(e) => setTournamentName(e.target.value)}
               placeholder="Practice Round"
-              className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 placeholder:text-golf-gray-300"
+              className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 placeholder:text-golf-gray-300"
             />
           </div>
 
@@ -324,7 +324,7 @@ export default function NewScorecardPage() {
               type="date"
               value={roundDate}
               onChange={(e) => setRoundDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150"
+              className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150"
             />
           </div>
 

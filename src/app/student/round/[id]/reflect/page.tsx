@@ -173,7 +173,7 @@ export default function ReflectPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <Link href="/student" className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center">
             &larr; Home
@@ -201,7 +201,7 @@ export default function ReflectPage() {
             value={hundredYardsIn ?? ''}
             onChange={(e) => handleHundredYardsIn(e.target.value)}
             placeholder="0"
-            className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 font-bold text-lg focus:outline-none focus:border-golf-green transition-colors min-h-[44px]"
+            className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-bold text-lg focus:outline-none focus:border-golf-green transition-colors min-h-[44px]"
           />
         </div>
 
@@ -215,7 +215,7 @@ export default function ReflectPage() {
             onChange={(e) => handleReflections(e.target.value)}
             placeholder="Swing keys, lessons learned, mental keys, key takeaways..."
             rows={4}
-            className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 text-sm focus:outline-none focus:border-golf-green transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 text-sm focus:outline-none focus:border-golf-green transition-colors resize-none"
           />
         </div>
 
@@ -237,7 +237,7 @@ export default function ReflectPage() {
                     'min-h-[44px]',
                     isSelected
                       ? 'border-golf-green bg-emerald-50'
-                      : 'border-golf-gray-200 bg-white hover:border-golf-gray-300',
+                      : 'border-golf-gray-200 bg-surface hover:border-golf-gray-300',
                   ].join(' ')}
                 >
                   <div className="flex items-start gap-3">
@@ -298,7 +298,7 @@ export default function ReflectPage() {
                 onChange={(e) => handleWhatTranspired(e.target.value)}
                 placeholder="Describe what happened during the round..."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 text-sm focus:outline-none focus:border-golf-green transition-colors resize-none"
+                className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 text-sm focus:outline-none focus:border-golf-green transition-colors resize-none"
               />
             </div>
 
@@ -311,7 +311,7 @@ export default function ReflectPage() {
                 onChange={(e) => handleHowToRespond(e.target.value)}
                 placeholder="Reflect on how you could have responded differently..."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-white text-golf-gray-500 text-sm focus:outline-none focus:border-golf-green transition-colors resize-none"
+                className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 text-sm focus:outline-none focus:border-golf-green transition-colors resize-none"
               />
             </div>
           </div>
@@ -319,7 +319,7 @@ export default function ReflectPage() {
       </div>
 
       {/* Bottom button */}
-      <div className="sticky bottom-0 bg-white border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <div className="sticky bottom-0 bg-surface border-t border-golf-gray-100 px-4 py-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div className="max-w-lg mx-auto">
           <Button
             variant="primary"

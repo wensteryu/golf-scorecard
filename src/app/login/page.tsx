@@ -68,7 +68,7 @@ export default function LoginPage() {
 
         {sent ? (
           /* Success state */
-          <div className="rounded-2xl border-2 border-golf-green bg-white p-8 text-center shadow-sm">
+          <div className="rounded-2xl border-2 border-golf-green bg-surface p-8 text-center shadow-sm">
             <div className="mb-4 text-5xl">📬</div>
             <h2 className="mb-2 text-xl font-bold text-golf-gray-500">
               Check your email!
@@ -89,13 +89,13 @@ export default function LoginPage() {
             </button>
           </div>
         ) : (
-          <div className="rounded-2xl border-2 border-golf-gray-100 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border-2 border-golf-gray-100 bg-surface p-6 shadow-sm">
             {/* Google Sign In */}
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={googleLoading}
-              className="touch-target flex w-full items-center justify-center gap-3 rounded-xl border-2 border-golf-gray-200 bg-white py-3 text-base font-bold text-golf-gray-500 transition-all hover:bg-golf-gray-50 active:translate-y-[1px] disabled:opacity-50 cursor-pointer"
+              className="touch-target flex w-full items-center justify-center gap-3 rounded-xl border-2 border-golf-gray-200 bg-surface py-3 text-base font-bold text-golf-gray-500 transition-all hover:bg-golf-gray-50 active:translate-y-[1px] disabled:opacity-50 cursor-pointer"
             >
               {googleLoading ? (
                 <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -135,7 +135,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="touch-target w-full rounded-xl border-2 border-golf-gray-100 bg-golf-gray-50 px-4 py-3 text-golf-gray-500 placeholder-golf-gray-300 outline-none transition-colors focus:border-golf-blue focus:bg-white"
+                className="touch-target w-full rounded-xl border-2 border-golf-gray-100 bg-golf-gray-50 px-4 py-3 text-golf-gray-500 placeholder-golf-gray-300 outline-none transition-colors focus:border-golf-blue focus:bg-surface"
               />
 
               {error && (

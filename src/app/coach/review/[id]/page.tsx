@@ -193,7 +193,7 @@ export default function ReviewScorecardPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto">
           <button
             type="button"
@@ -412,7 +412,7 @@ export default function ReviewScorecardPage() {
                           'w-full px-3 py-2 rounded-xl text-sm',
                           'border-2 border-golf-gray-200 bg-golf-gray-50',
                           'text-golf-gray-500 placeholder:text-golf-gray-300',
-                          'focus:border-golf-blue focus:outline-none focus:bg-white',
+                          'focus:border-golf-blue focus:outline-none focus:bg-surface',
                           'transition-colors duration-150 resize-none',
                         ].join(' ')}
                       />
@@ -492,7 +492,7 @@ export default function ReviewScorecardPage() {
             rows={4}
             className={[
               'w-full px-4 py-3 rounded-xl',
-              'border-2 border-golf-gray-200 bg-white',
+              'border-2 border-golf-gray-200 bg-surface',
               'text-golf-gray-500 font-semibold text-sm',
               'focus:border-golf-blue focus:outline-none',
               'transition-colors duration-150 resize-none',

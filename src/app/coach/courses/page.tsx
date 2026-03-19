@@ -121,7 +121,7 @@ export default function ManageCoursesPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             type="button"
@@ -150,7 +150,7 @@ export default function ManageCoursesPage() {
               placeholder="Course name"
               className={[
                 'flex-1 px-4 py-3 rounded-xl',
-                'border-2 border-golf-gray-200 bg-white',
+                'border-2 border-golf-gray-200 bg-surface',
                 'text-golf-gray-500 font-semibold text-base',
                 'focus:border-golf-green focus:outline-none',
                 'min-h-[48px]',

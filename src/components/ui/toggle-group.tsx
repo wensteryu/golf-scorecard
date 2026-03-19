@@ -82,7 +82,7 @@ export function ToggleGroup(props: ToggleGroupProps) {
                 'transition-all duration-150 select-none cursor-pointer',
                 selected
                   ? 'bg-golf-green text-white border-2 border-golf-green-dark shadow-sm'
-                  : 'bg-white text-golf-gray-400 border-2 border-golf-gray-200 hover:border-golf-gray-300 hover:text-golf-gray-500',
+                  : 'bg-surface text-golf-gray-400 border-2 border-golf-gray-200 hover:border-golf-gray-300 hover:text-golf-gray-500',
               ].join(' ')}
             >
               {option.icon && <span className="text-lg">{option.icon}</span>}

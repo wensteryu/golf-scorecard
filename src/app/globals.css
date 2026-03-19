@@ -15,12 +15,14 @@
   --color-golf-gray-300: #afafaf;
   --color-golf-gray-400: #777777;
   --color-golf-gray-500: #4b4b4b;
+  --color-surface: #ffffff;
+  --color-golf-accent: #4b4b4b;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
 body {
-  background: #f7f7f7;
-  color: #4b4b4b;
+  background: var(--color-golf-gray-50);
+  color: var(--color-golf-gray-500);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
@@ -29,6 +31,19 @@ body {
 html, body {
   overflow-x: hidden;
   max-width: 100vw;
+}
+
+/* Dark mode overrides */
+.dark {
+  color-scheme: dark;
+  --color-golf-gray-50: #161622;
+  --color-golf-gray-100: #252538;
+  --color-golf-gray-200: #353548;
+  --color-golf-gray-300: #6a6a7a;
+  --color-golf-gray-400: #9a9aaa;
+  --color-golf-gray-500: #e0e0ea;
+  --color-surface: #1e1e2e;
+  --color-golf-accent: #2a2a3e;
 }
 
 /* Large touch targets */

@@ -115,7 +115,7 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        <div className="rounded-2xl border-2 border-golf-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border-2 border-golf-gray-100 bg-surface p-6 shadow-sm">
           {/* Step 1: Name */}
           {step === 1 && (
             <div>
@@ -139,7 +139,7 @@ export default function OnboardingPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="e.g. Tiger Woods"
                 autoFocus
-                className="touch-target w-full rounded-xl border-2 border-golf-gray-100 bg-golf-gray-50 px-4 py-3 text-golf-gray-500 placeholder-golf-gray-300 outline-none transition-colors focus:border-golf-blue focus:bg-white"
+                className="touch-target w-full rounded-xl border-2 border-golf-gray-100 bg-golf-gray-50 px-4 py-3 text-golf-gray-500 placeholder-golf-gray-300 outline-none transition-colors focus:border-golf-blue focus:bg-surface"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && canAdvance()) handleNext();
                 }}

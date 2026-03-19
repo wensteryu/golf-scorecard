@@ -51,7 +51,7 @@ export function CelebrationCard({
   const diff = front9Score - front9Par;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-white shadow-lg border border-golf-gray-100">
+    <div className="relative overflow-hidden rounded-2xl bg-surface shadow-lg border border-golf-gray-100">
       {/* Confetti overlay */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {Array.from({ length: 12 }, (_, i) => (

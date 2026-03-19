@@ -12,7 +12,7 @@ export function RoleSwitcher() {
     <button
       type="button"
       onClick={() => router.push(isCoachView ? '/student' : '/coach')}
-      className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-golf-gray-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-golf-gray-400 transition-colors cursor-pointer"
+      className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-golf-accent px-4 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-golf-accent transition-colors cursor-pointer"
     >
       <span className="text-base">{isCoachView ? '🏌️' : '📋'}</span>
       {isCoachView ? 'Student View' : 'Coach View'}

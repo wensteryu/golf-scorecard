@@ -9,6 +9,7 @@ import { Card, CardBody } from '@/components/ui/card';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { RoleSwitcher } from '@/components/ui/role-switcher';
 import { isAdmin } from '@/lib/admin';
+import { ThemeToggle } from '@/lib/theme';
 
 export default function CoachDashboardPage() {
   const router = useRouter();
@@ -92,7 +93,7 @@ export default function CoachDashboardPage() {
   return (
     <div className="min-h-screen bg-golf-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-golf-gray-100 px-4 py-4 shadow-sm">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -203,15 +204,18 @@ export default function CoachDashboardPage() {
           Manage Courses
         </Button>
 
-        {/* Sign out */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSignOut}
-          className="w-full"
-        >
-          Sign Out
-        </Button>
+        {/* Settings */}
+        <div className="flex flex-col items-center gap-2">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="w-full"
+          >
+            Sign Out
+          </Button>
+        </div>
       </div>
       {profile && isAdmin(profile.email) && <RoleSwitcher />}
     </div>

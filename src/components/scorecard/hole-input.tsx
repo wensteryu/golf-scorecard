@@ -241,7 +241,7 @@ export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle'
           className={[
             'w-40 text-center text-lg font-bold',
             'px-4 py-3 rounded-xl',
-            'border-2 border-golf-gray-200 bg-white',
+            'border-2 border-golf-gray-200 bg-surface',
             'focus:border-golf-green focus:outline-none',
             'min-h-[48px]',
             'transition-colors duration-150',
@@ -274,7 +274,7 @@ export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle'
           className={[
             'w-40 text-center text-2xl font-bold tabular-nums',
             'px-4 py-3 rounded-xl',
-            'border-2 border-golf-gray-200 bg-white',
+            'border-2 border-golf-gray-200 bg-surface',
             'focus:border-golf-green focus:outline-none',
             'min-h-[48px]',
             'transition-colors duration-150',
@@ -346,7 +346,7 @@ export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle'
             className={[
               'w-40 text-center text-2xl font-bold tabular-nums',
               'px-4 py-3 rounded-xl',
-              'border-2 border-golf-gray-200 bg-white',
+              'border-2 border-golf-gray-200 bg-surface',
               'focus:border-golf-green focus:outline-none',
               'min-h-[48px]',
               'transition-colors duration-150',
