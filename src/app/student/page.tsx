@@ -281,6 +281,11 @@ export default function StudentDashboard() {
                             </span>
                           </div>
                         </div>
+                        <div className="mt-2 pt-2 border-t border-golf-gray-100 text-center">
+                          <span className="text-xs font-bold text-golf-blue">
+                            Tap to view or edit &rarr;
+                          </span>
+                        </div>
                       </CardBody>
                     </Card>
                   </Link>
