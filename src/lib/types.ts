@@ -44,6 +44,7 @@ export interface Scorecard {
   tournament_name: string;
   round_date: string;
   status: ScorecardStatus;
+  hole_count: number;
   hundred_yards_in: number | null;
   reflections: string | null;
   mentality_rating: MentalityRating | null;

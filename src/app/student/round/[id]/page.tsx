@@ -220,7 +220,8 @@ export default function RoundScoringPage() {
   }, [holeScores, currentHole, scorecardId, supabase]);
 
   async function goToHole(holeNumber: number) {
-    if (holeNumber < 1 || holeNumber > 18) return;
+    const totalHoles = holeScores.length;
+    if (holeNumber < 1 || holeNumber > totalHoles) return;
 
     // Auto-save par as score if student didn't change it
     await autoSaveCurrentHoleScore();
@@ -228,8 +229,8 @@ export default function RoundScoringPage() {
     // Flush any pending save before switching holes
     await flushPendingSave();
 
-    // Show celebration after completing hole 9
-    if (currentHole === 9 && holeNumber === 10) {
+    // Show celebration after completing hole 9 (only for 18-hole rounds)
+    if (totalHoles === 18 && currentHole === 9 && holeNumber === 10) {
       setShowCelebration(true);
       return;
     }
@@ -307,7 +308,7 @@ export default function RoundScoringPage() {
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Elite Golf Realm" className="h-7 w-auto object-contain" />
             <h1 className="text-base font-extrabold text-golf-gray-500">
-              Hole {currentHole} / 18
+              Hole {currentHole} / {holeScores.length}
             </h1>
           </div>
           <div className="text-sm font-bold text-golf-gray-300 w-16 text-right">
@@ -358,7 +359,7 @@ export default function RoundScoringPage() {
               &larr; Previous
             </Button>
 
-            {currentHole === 18 ? (
+            {currentHole === holeScores.length ? (
               <Button
                 variant="primary"
                 size="lg"

@@ -17,6 +17,7 @@ export default function NewScorecardPage() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
+  const [holeCount, setHoleCount] = useState<9 | 18>(18);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -139,6 +140,7 @@ export default function NewScorecardPage() {
           course_id: selectedCourseId,
           tournament_name: tournamentName.trim() || 'Practice Round',
           round_date: roundDate,
+          hole_count: holeCount,
           status: 'in_progress',
         })
         .select()
@@ -153,8 +155,8 @@ export default function NewScorecardPage() {
         (a, b) => a.hole_number - b.hole_number
       );
 
-      // Create 18 hole_score rows pre-populated with par
-      const holeScoreRows = Array.from({ length: 18 }, (_, i) => {
+      // Create hole_score rows pre-populated with par
+      const holeScoreRows = Array.from({ length: holeCount }, (_, i) => {
         const holeNumber = i + 1;
         const courseHole = sortedHoles.find((h) => h.hole_number === holeNumber);
         const par = courseHole?.par ?? 4;
@@ -309,6 +311,30 @@ export default function NewScorecardPage() {
               placeholder="Practice Round"
               className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 placeholder:text-golf-gray-300"
             />
+          </div>
+
+          {/* Holes */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide">
+              Holes
+            </span>
+            <div className="flex gap-3">
+              {([9, 18] as const).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setHoleCount(n)}
+                  className={[
+                    'flex-1 py-3 rounded-xl font-bold text-lg transition-all cursor-pointer',
+                    holeCount === n
+                      ? 'bg-golf-green text-white border-b-3 border-golf-green-dark'
+                      : 'bg-golf-gray-100 text-golf-gray-400 border-b-3 border-golf-gray-200 hover:bg-golf-gray-200',
+                  ].join(' ')}
+                >
+                  {n} Holes
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Round date */}

@@ -230,48 +230,50 @@ export default function SummaryPage() {
               </div>
               <div className="text-xs text-golf-gray-400 mt-1">Par {stats.totalPar}</div>
             </div>
-            <div className="grid grid-cols-2 gap-4 border-t border-golf-gray-100 pt-4">
-              <div className="text-center">
-                <div className="text-xs text-golf-gray-400 uppercase tracking-wide mb-1">
-                  Front 9
+            {stats.back9Par > 0 && (
+              <div className="grid grid-cols-2 gap-4 border-t border-golf-gray-100 pt-4">
+                <div className="text-center">
+                  <div className="text-xs text-golf-gray-400 uppercase tracking-wide mb-1">
+                    Front 9
+                  </div>
+                  <div className="text-2xl font-bold text-golf-gray-500">
+                    {stats.front9Score}
+                  </div>
+                  <div
+                    className={[
+                      'text-xs font-bold',
+                      stats.front9Score - stats.front9Par > 0
+                        ? 'text-golf-red'
+                        : stats.front9Score - stats.front9Par < 0
+                          ? 'text-emerald-600'
+                          : 'text-golf-gray-400',
+                    ].join(' ')}
+                  >
+                    {formatScoreToPar(stats.front9Score - stats.front9Par)}
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-golf-gray-500">
-                  {stats.front9Score}
-                </div>
-                <div
-                  className={[
-                    'text-xs font-bold',
-                    stats.front9Score - stats.front9Par > 0
-                      ? 'text-golf-red'
-                      : stats.front9Score - stats.front9Par < 0
-                        ? 'text-emerald-600'
-                        : 'text-golf-gray-400',
-                  ].join(' ')}
-                >
-                  {formatScoreToPar(stats.front9Score - stats.front9Par)}
+                <div className="text-center">
+                  <div className="text-xs text-golf-gray-400 uppercase tracking-wide mb-1">
+                    Back 9
+                  </div>
+                  <div className="text-2xl font-bold text-golf-gray-500">
+                    {stats.back9Score}
+                  </div>
+                  <div
+                    className={[
+                      'text-xs font-bold',
+                      stats.back9Score - stats.back9Par > 0
+                        ? 'text-golf-red'
+                        : stats.back9Score - stats.back9Par < 0
+                          ? 'text-emerald-600'
+                          : 'text-golf-gray-400',
+                    ].join(' ')}
+                  >
+                    {formatScoreToPar(stats.back9Score - stats.back9Par)}
+                  </div>
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-golf-gray-400 uppercase tracking-wide mb-1">
-                  Back 9
-                </div>
-                <div className="text-2xl font-bold text-golf-gray-500">
-                  {stats.back9Score}
-                </div>
-                <div
-                  className={[
-                    'text-xs font-bold',
-                    stats.back9Score - stats.back9Par > 0
-                      ? 'text-golf-red'
-                      : stats.back9Score - stats.back9Par < 0
-                        ? 'text-emerald-600'
-                        : 'text-golf-gray-400',
-                  ].join(' ')}
-                >
-                  {formatScoreToPar(stats.back9Score - stats.back9Par)}
-                </div>
-              </div>
-            </div>
+            )}
           </CardBody>
         </Card>
 
