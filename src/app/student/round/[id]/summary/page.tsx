@@ -548,6 +548,31 @@ export default function SummaryPage() {
                   Back to Dashboard
                 </Button>
               </Link>
+              {!showConfetti && (
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="w-full"
+                  loading={submitting}
+                  onClick={async () => {
+                    setSubmitting(true);
+                    const { error: retractError } = await supabase
+                      .from('scorecards')
+                      .update({
+                        status: 'in_progress' as ScorecardStatus,
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq('id', scorecardId);
+                    if (retractError) {
+                      setSubmitting(false);
+                      return;
+                    }
+                    router.push(`/student/round/${scorecardId}`);
+                  }}
+                >
+                  Retract &amp; Edit Scores
+                </Button>
+              )}
             </>
           )}
 

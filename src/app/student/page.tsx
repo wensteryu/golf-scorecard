@@ -256,32 +256,34 @@ export default function StudentDashboard() {
                 const par = getTotalPar(sc);
                 const diff = total - par;
                 return (
-                  <Card key={sc.id}>
-                    <CardBody>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-golf-gray-500">
-                            {sc.course?.name ?? 'Unknown Course'}
-                          </p>
-                          <p className="text-sm text-golf-gray-400">{sc.tournament_name}</p>
-                          <p className="text-xs text-golf-gray-300 mt-1">
-                            {formatDate(sc.round_date)}
-                          </p>
+                  <Link key={sc.id} href={`/student/round/${sc.id}/summary`}>
+                    <Card className="hover:shadow-md transition-shadow">
+                      <CardBody>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-bold text-golf-gray-500">
+                              {sc.course?.name ?? 'Unknown Course'}
+                            </p>
+                            <p className="text-sm text-golf-gray-400">{sc.tournament_name}</p>
+                            <p className="text-xs text-golf-gray-300 mt-1">
+                              {formatDate(sc.round_date)}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-lg font-extrabold text-golf-gray-500">
+                              {total}
+                            </span>
+                            <span className="text-xs font-bold text-golf-gray-300">
+                              {formatScoreToPar(diff)}
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-golf-blue/15 text-golf-blue">
+                              Submitted
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-lg font-extrabold text-golf-gray-500">
-                            {total}
-                          </span>
-                          <span className="text-xs font-bold text-golf-gray-300">
-                            {formatScoreToPar(diff)}
-                          </span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-golf-blue/15 text-golf-blue">
-                            Submitted
-                          </span>
-                        </div>
-                      </div>
-                    </CardBody>
-                  </Card>
+                      </CardBody>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>
