@@ -38,6 +38,11 @@ yarn-error.log*
 *.JPG
 *.jpg
 
+# reference/design artifacts
+ground truth/
+mockup-*.png
+stan_rev*.md
+
 # vercel
 .vercel
 
