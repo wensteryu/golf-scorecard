@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-@theme inline {
+/* Colors use @theme (not inline) so utilities reference CSS vars — required for dark mode override */
+@theme {
   --color-golf-green: #58cc02;
   --color-golf-green-dark: #46a302;
   --color-golf-blue: #1cb0f6;
@@ -17,6 +18,9 @@
   --color-golf-gray-500: #4b4b4b;
   --color-surface: #ffffff;
   --color-golf-accent: #4b4b4b;
+}
+
+@theme inline {
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
