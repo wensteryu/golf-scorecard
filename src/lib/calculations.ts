@@ -18,13 +18,13 @@ export function calculateStats(holes: HoleScore[]): RoundStats {
   const fairwaysTotal = fairwayHoles.filter((h) => h.fairway !== null).length;
 
   // GIR stats
-  const girHoles = holes.filter((h) => h.gir !== null);
-  const girHit = holes.filter((h) => h.gir === 'hit').length;
-  const girMissedLeft = holes.filter((h) => h.gir === 'left').length;
-  const girMissedRight = holes.filter((h) => h.gir === 'right').length;
-  const girMissedShort = holes.filter((h) => h.gir === 'short').length;
-  const girMissedOver = holes.filter((h) => h.gir === 'over').length;
-  const girMissedPinHigh = holes.filter((h) => h.gir === 'pin_high').length;
+  const girHoles = holes.filter((h) => h.gir_hit !== null);
+  const girHit = holes.filter((h) => h.gir_hit === true).length;
+  const pinPositionLeft = holes.filter((h) => h.pin_position?.includes('left')).length;
+  const pinPositionRight = holes.filter((h) => h.pin_position?.includes('right')).length;
+  const pinPositionShort = holes.filter((h) => h.pin_position?.includes('short')).length;
+  const pinPositionOver = holes.filter((h) => h.pin_position?.includes('over')).length;
+  const pinPositionPinHigh = holes.filter((h) => h.pin_position?.includes('pin_high')).length;
 
   // Fairway miss distance
   const fwMissDistances = holes
@@ -88,11 +88,11 @@ export function calculateStats(holes: HoleScore[]): RoundStats {
     fairwaysMissedRight,
     girHit,
     girTotal: girHoles.length,
-    girMissedLeft,
-    girMissedRight,
-    girMissedShort,
-    girMissedOver,
-    girMissedPinHigh,
+    pinPositionLeft,
+    pinPositionRight,
+    pinPositionShort,
+    pinPositionOver,
+    pinPositionPinHigh,
     totalPutts,
     onePutts,
     threePutts,

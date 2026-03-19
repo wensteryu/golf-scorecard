@@ -309,19 +309,19 @@ export default function SummaryPage() {
               <StatBar value={stats.girHit} total={stats.girTotal} />
               <div className="flex flex-wrap gap-3 mt-2">
                 <span className="text-xs text-golf-gray-400">
-                  Missed L: {stats.girMissedLeft}
+                  Left: {stats.pinPositionLeft}
                 </span>
                 <span className="text-xs text-golf-gray-400">
-                  Missed R: {stats.girMissedRight}
+                  Right: {stats.pinPositionRight}
                 </span>
                 <span className="text-xs text-golf-gray-400">
-                  Short: {stats.girMissedShort}
+                  Short: {stats.pinPositionShort}
                 </span>
                 <span className="text-xs text-golf-gray-400">
-                  Over: {stats.girMissedOver}
+                  Over: {stats.pinPositionOver}
                 </span>
                 <span className="text-xs text-golf-gray-400">
-                  Pin High: {stats.girMissedPinHigh}
+                  Pin High: {stats.pinPositionPinHigh}
                 </span>
               </div>
               {stats.avgFairwayMissDistance !== null && (

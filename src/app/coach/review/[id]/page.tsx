@@ -168,12 +168,12 @@ export default function ReviewScorecardPage() {
     return 'Right';
   }
 
-  function girLabel(val: string | null) {
-    if (!val) return '--';
-    if (val === 'hit') return 'Hit';
-    if (val === 'pin_high') return 'Pin High';
-    if (val === 'over') return 'Over';
-    return val.charAt(0).toUpperCase() + val.slice(1);
+  function girLabel(hole: HoleScore) {
+    if (hole.gir_hit === null) return '--';
+    const posMap: Record<string, string> = { left: 'Left', right: 'Right', short: 'Short', over: 'Over', pin_high: 'Pin High' };
+    const pinStr = hole.pin_position?.map((p) => posMap[p] ?? p).join(', ') ?? '';
+    if (hole.gir_hit) return pinStr ? `Hit (${pinStr})` : 'Hit';
+    return pinStr ? `Missed (${pinStr})` : 'Missed';
   }
 
   function firstPuttResultLabel(val: string | null) {
@@ -358,7 +358,7 @@ export default function ReviewScorecardPage() {
                           FW: {fairwayLabel(hole.fairway)}
                         </span>
                         <span className="text-xs text-golf-gray-300">
-                          GIR: {girLabel(hole.gir)}
+                          GIR: {girLabel(hole)}
                         </span>
                         <span className="text-xs text-golf-gray-300">
                           {hole.putts ?? '-'}P

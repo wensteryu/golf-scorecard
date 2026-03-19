@@ -4,7 +4,7 @@ export type ScorecardStatus = 'in_progress' | 'submitted' | 'reviewed';
 
 export type FairwayResult = 'hit' | 'left' | 'right' | null;
 
-export type GIRResult = 'hit' | 'left' | 'right' | 'short' | 'over' | 'pin_high' | null;
+export type PinPosition = 'left' | 'right' | 'short' | 'over' | 'pin_high';
 
 export type ClubUsed = 'LW' | 'SW' | 'GW' | 'PW' | '9i' | '8i' | '7i' | '6i' | '5i' | '4i' | '3i' | '5w' | '3w' | 'D' | null;
 
@@ -65,7 +65,8 @@ export interface HoleScore {
   par: number;
   score: number | null;
   fairway: FairwayResult;
-  gir: GIRResult;
+  gir_hit: boolean | null;
+  pin_position: PinPosition[] | null;
   putts: number | null;
   first_putt_distance: number | null;
   up_and_down: boolean | null;
@@ -103,11 +104,11 @@ export interface RoundStats {
   fairwaysMissedRight: number;
   girHit: number;
   girTotal: number;
-  girMissedLeft: number;
-  girMissedRight: number;
-  girMissedShort: number;
-  girMissedOver: number;
-  girMissedPinHigh: number;
+  pinPositionLeft: number;
+  pinPositionRight: number;
+  pinPositionShort: number;
+  pinPositionOver: number;
+  pinPositionPinHigh: number;
   totalPutts: number;
   onePutts: number;
   threePutts: number;

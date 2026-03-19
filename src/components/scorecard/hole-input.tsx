@@ -1,6 +1,6 @@
 'use client';
 
-import { HoleScore, FairwayResult, GIRResult, FirstPuttResult } from '@/lib/types';
+import { HoleScore, FairwayResult, PinPosition, FirstPuttResult } from '@/lib/types';
 import { scoreColor, scoreLabel } from '@/lib/calculations';
 import { Stepper } from '@/components/ui/stepper';
 import { ToggleGroup } from '@/components/ui/toggle-group';
@@ -18,8 +18,7 @@ const fairwayOptions = [
   { label: 'Right', value: 'right', icon: <span>&rarr;</span> },
 ];
 
-const girOptions = [
-  { label: 'Hit', value: 'hit', icon: <span>&#10003;</span> },
+const pinPositionOptions = [
   { label: 'Left', value: 'left', icon: <span>&larr;</span> },
   { label: 'Right', value: 'right', icon: <span>&rarr;</span> },
   { label: 'Short', value: 'short', icon: <span>&darr;</span> },
@@ -286,10 +285,27 @@ export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle'
       {/* Green in Regulation */}
       <ToggleGroup
         label="Green in Regulation"
-        options={girOptions}
-        value={hole.gir}
-        onChange={(val) => onUpdate('gir', val as GIRResult)}
+        options={yesNoOptions}
+        value={hole.gir_hit === true ? 'yes' : hole.gir_hit === false ? 'no' : null}
+        onChange={(val) => {
+          onUpdate('gir_hit', val === 'yes');
+          if (val === 'yes') {
+            onUpdate('pin_position', null);
+          }
+        }}
       />
+
+      {/* Pin Position (shown when GIR is answered) */}
+      {hole.gir_hit !== null && (
+        <ToggleGroup
+          label="Pin Position"
+          options={pinPositionOptions}
+          multiple
+          max={2}
+          value={hole.pin_position ?? []}
+          onChange={(vals) => onUpdate('pin_position', vals.length > 0 ? vals : null)}
+        />
+      )}
 
       {/* ─── ON THE GREEN ─── */}
       <SectionDivider label="On the Green" />
@@ -352,8 +368,8 @@ export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle'
       {/* ─── OTHER ─── */}
       <SectionDivider label="Other" />
 
-      {/* Up and Down (only when GIR is NOT hit) */}
-      {hole.gir !== null && hole.gir !== 'hit' && (
+      {/* Up and Down (only when GIR missed) */}
+      {hole.gir_hit === false && (
         <ToggleGroup
           label="Up and Down"
           options={yesNoOptions}
@@ -363,7 +379,7 @@ export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle'
       )}
 
       {/* Chip In */}
-      {hole.gir !== null && hole.gir !== 'hit' && (
+      {hole.gir_hit === false && (
         <ToggleGroup
           label="Chip In"
           options={yesNoOptions}

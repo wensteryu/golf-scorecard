@@ -11,7 +11,7 @@
 - `src/components/ui/` — Reusable: button, card, progress-bar, stepper, toggle-group
 - `src/components/scorecard/` — Domain: hole-input (core UX), celebration-card
 - `src/lib/` — types.ts, calculations.ts, supabase/{client,server,middleware}.ts
-- `supabase/migrations/` — 4 migrations (001 initial, 002 open course access, 003 fix profiles recursion, 004 coaching fields)
+- `supabase/migrations/` — 5 migrations (001 initial → 005 split GIR fields)
 
 **DB Tables**: `profiles`, `golf_courses`, `course_holes`, `scorecards`, `hole_scores`, `notifications`. All RLS-protected.
 
@@ -20,70 +20,67 @@
 ## 2. Current Status
 
 ### Completed This Session (2026-03-19)
-Implemented Stan's 4 new coaching variables — full stack, all code changes done:
+**Split GIR into Yes/No + Pin Position multi-select** — 8 files modified + 1 new migration:
 
-- **Migration** (`supabase/migrations/004_add_coaching_fields.sql`) — Adds `fairway_miss_distance`, `club_used`, `approach_distance`, `first_putt_result` columns. Drops old GIR constraint first, migrates `gir='long'→'over'`, adds new constraint with `'over'` and `'pin_high'`.
-- **Types** (`src/lib/types.ts`) — `GIRResult` updated (`'long'`→`'over'`, added `'pin_high'`). New types: `ClubUsed`, `FirstPuttResult`. `HoleScore` extended with 4 fields. `RoundStats` extended with new aggregate stats.
-- **Stepper** (`src/components/ui/stepper.tsx`) — Added `step` prop (default 1) for 5-yard increments.
-- **HoleInput** (`src/components/scorecard/hole-input.tsx`) — Full redesign: 4 sections (Off the Tee / Approach Shot / On the Green / Other). FW miss distance stepper (conditional on miss), club dropdown, approach distance input, first putt result toggle (conditional on putts>0, auto-sets "Made" when putts=1). Up & Down and Chip In moved under "Other", shown only when GIR missed.
-- **Round init** (`src/app/student/new/page.tsx`) — New fields initialized as `null`.
-- **Calculations** (`src/lib/calculations.ts`) — `girMissedLong`→`girMissedOver`, added `girMissedPinHigh`, `avgFairwayMissDistance`, `avgApproachDistance`, `clubUsageCounts`, 5 first putt result counts.
-- **Summary** (`src/app/student/round/[id]/summary/page.tsx`) — Updated GIR labels (Over/Pin High), avg FW miss distance, new Approach card, 1st Putt Tendency section.
-- **Review** (`src/app/student/round/[id]/review/page.tsx`) — GIR display: `'over'`→`'O'`, `'pin_high'`→`'PH'`.
-- **Coach review** (`src/app/coach/review/[id]/page.tsx`) — Updated GIR labels, expanded view shows Club/Approach Distance/1st Putt Result/FW Miss Distance.
+- **Migration** (`supabase/migrations/005_split_gir_fields.sql`) — Adds `gir_hit` (boolean) + `pin_position` (text[]), migrates old `gir` enum data, drops old `gir` column + constraint.
+- **Types** (`src/lib/types.ts`) — Removed `GIRResult`, added `PinPosition` type. `HoleScore.gir` → `gir_hit` (boolean|null) + `pin_position` (PinPosition[]|null). `RoundStats`: `girMissed*` → `pinPosition*`.
+- **Toggle Group** (`src/components/ui/toggle-group.tsx`) — Added discriminated union props for multi-select mode (`multiple`, `max`, array value/onChange). Backward compatible — existing single-select callers unchanged.
+- **HoleInput** (`src/components/scorecard/hole-input.tsx`) — GIR is now Yes/No toggle. Pin Position multi-select (5 options, max 2) appears after GIR answer. Up & Down / Chip In conditional on `gir_hit === false`. Pin position clears when GIR set to Yes.
+- **Round init** (`src/app/student/new/page.tsx`) — `gir: null` → `gir_hit: null, pin_position: null`.
+- **Calculations** (`src/lib/calculations.ts`) — Uses `gir_hit` boolean for hit count, `pin_position.includes()` for direction stats. Compound positions (e.g., "short & right") count toward each direction.
+- **Summary** (`src/app/student/round/[id]/summary/page.tsx`) — Renamed stat labels `girMissed*` → `pinPosition*` ("Left: N", "Right: N", etc.).
+- **Review** (`src/app/student/round/[id]/review/page.tsx`) — `girDisplay()` shows checkmark/X + pin abbrevs (e.g., "✓ S,R"). `subtotal()` uses `gir_hit`.
+- **Coach review** (`src/app/coach/review/[id]/page.tsx`) — `girLabel(hole)` shows "Hit (Short, Right)" or "Missed (Left)".
 
-### Blocker Encountered & Fixed
-- **Migration ordering bug**: Original migration tried `UPDATE gir='over'` while old constraint (only allowing `'long'`) was still active → constraint violation error. **Fixed**: reordered to DROP constraint first, then UPDATE data, then ADD new constraint. Corrected SQL provided to user; migration file updated.
+### Verification Status
+- **TypeScript**: `npx tsc --noEmit` passes with zero errors
+- **Migration**: NOT yet applied — user chose to run SQL manually in Supabase Dashboard
+- **Runtime**: NOT yet tested — blocked on migration
 
 ### NOT Yet Done
-- **Migration status UNKNOWN** — user was given corrected SQL to run in Supabase SQL editor but session ended before confirming success
-- **Changes NOT committed** — all 8 modified files + 1 new migration + HANDOFF.md are uncommitted
-- **No end-to-end testing** — `npx tsc --noEmit` passes clean, but no runtime verification with real data
+- **Migration not applied** — SQL ready in `supabase/migrations/005_split_gir_fields.sql`, needs to be run in Supabase SQL Editor
+- **Changes NOT committed** — all modified files are uncommitted
+- **No end-to-end testing** — needs migration applied first
 
 ## 3. Key Decisions
 
 | Decision | Rationale |
 |---|---|
-| GIR `'long'` → `'over'` rename | Coach Stan's terminology preference; migration handles existing data |
-| GIR `'pin_high'` added | New miss category Stan wants to track for coaching analysis |
-| Migration: drop constraint → update data → add constraint | Must drop old constraint before writing new enum values; original order caused CHECK violation |
-| Section dividers (not collapsible) | Matches approved mockup; keeps all fields visible, just visually organized |
-| Club as `<select>` dropdown | 15 options too many for toggle pills |
-| FW miss distance: stepper with step=5 | 5-yard increments match how golfers estimate miss distance |
-| Auto-set first putt result to "Made" when putts=1 | If 1 putt on the green, it was obviously made — saves a tap |
-| Chip In & Up and Down hidden when GIR=hit | Not applicable when green is hit in regulation |
+| Pin Position independent of GIR hit/miss | Player who hits GIR can still record pin position ("Hit but short-right") — richer coaching data per Coach Stan |
+| Pin Position max 2 selections | Compound positions beyond 2 don't make golf sense (e.g., "short + right" = OK, three directions = nonsensical) |
+| Pin position clears on GIR=Yes | Clean slate for re-selection; avoids stale data |
+| Supabase `text[]` for pin_position | PostgREST handles arrays natively — no save mechanism changes needed |
+| Discriminated union for toggle-group props | Type-safe multi-select without breaking existing single-select usage |
 
 ## 4. Next Steps
 
-**Priority 1 — Verify migration applied:**
-1. Check if corrected SQL was run: `SELECT column_name FROM information_schema.columns WHERE table_name = 'hole_scores' AND column_name IN ('fairway_miss_distance', 'club_used', 'approach_distance', 'first_putt_result');`
-2. Verify GIR constraint: `SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'hole_scores_gir_check';`
-3. If not applied, run the corrected SQL from `supabase/migrations/004_add_coaching_fields.sql`
+**Priority 1 — Apply migration:**
+1. Run SQL from `supabase/migrations/005_split_gir_fields.sql` in Supabase SQL Editor
+2. Verify: `SELECT gir_hit, pin_position FROM hole_scores LIMIT 5;`
+3. Confirm old `gir` column is dropped: `SELECT column_name FROM information_schema.columns WHERE table_name = 'hole_scores' AND column_name = 'gir';` (should return 0 rows)
 
-**Priority 2 — Commit and push:**
-1. Commit all changes (8 modified + 1 new migration file)
+**Priority 2 — Runtime verification:**
+1. `npm run dev` → create new round → test GIR Yes/No + pin position multi-select saves
+2. Test max 2 pin positions enforced
+3. Test Up & Down / Chip In visibility (hidden when GIR=Yes, shown when GIR=No)
+4. Verify Summary, Review, Coach Review pages display new stats
+5. Load existing round → backward compat (migrated data displays correctly)
+
+**Priority 3 — Commit and push:**
+1. Commit all changes
 2. Push to main → Vercel auto-deploys
-3. **CRITICAL**: Do NOT push before migration is confirmed applied — deploy will break if new columns don't exist
+3. **CRITICAL**: Do NOT push before migration is confirmed applied
 
-**Priority 3 — End-to-end testing:**
-1. Create new round → test all 4 new fields save correctly
-2. Test par 3 hole (Off the Tee section hidden)
-3. Test fairway miss → distance stepper appears; fairway hit → distance clears to null
-4. Test putts=0 → first putt result hidden; putts≥1 → shown; putts=1 → auto-sets "Made"
-5. Verify Summary, Review, Coach Review pages display new/renamed stats
-6. Load existing scorecard → verify backward compat (nulls for new fields)
-
-**Priority 4 — Polish:**
-- Mobile testing of new HoleInput layout (more fields = more scrolling)
-- Verify toggle-group handles 6 GIR options well on small screens
+**Priority 4 — Production smoke test**
 
 ## 5. Context Notes
 
-- **Mockup reference**: `mockup-enhanced-hole-input.png` in project root — approved design for the new layout
-- **Stan's request doc**: `stan_rev1.md` in project root — original coaching variable requirements
-- **Save mechanism unchanged** — `handleFieldChange` in `round/[id]/page.tsx` uses generic `{ [field]: value }` pattern. New fields auto-work with debounced save.
+- **Old model**: `gir` was a single enum (`hit|left|right|short|over|pin_high`). **New model**: `gir_hit` (boolean) + `pin_position` (text[]). Two independent dimensions.
+- **`PinPosition` type** at `types.ts:7` — DB column is untyped `text[]`, app-side types enforce the enum.
+- **Save mechanism unchanged** — `handleFieldChange` in `round/[id]/page.tsx` uses generic `{ [field]: value }` pattern. Arrays auto-work with PostgREST.
 - **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app`. Auto-deploys on push to main.
 - **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`.
 - **Admin email**: `wenjyu@gmail.com` — sees RoleSwitcher for dual-role testing.
-- **No CLAUDE.md in project** — global CLAUDE.md at `~/.claude/CLAUDE.md` governs workflow.
 - **TypeScript compiles clean** — zero errors from `npx tsc --noEmit`.
+- **Mockup reference**: `mockup-enhanced-hole-input.png` in project root.
+- **Stan's request doc**: `stan_rev1.md` in project root.

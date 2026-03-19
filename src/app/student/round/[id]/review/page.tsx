@@ -80,8 +80,8 @@ export default function ReviewPage() {
       penalty: holes.reduce((s, h) => s + h.penalty_strokes, 0),
       fw: holes.filter((h) => h.fairway === 'hit').length,
       fwTotal: holes.filter((h) => h.par > 3 && h.fairway !== null).length,
-      gir: holes.filter((h) => h.gir === 'hit').length,
-      girTotal: holes.filter((h) => h.gir !== null).length,
+      gir: holes.filter((h) => h.gir_hit === true).length,
+      girTotal: holes.filter((h) => h.gir_hit !== null).length,
     };
   }
 
@@ -102,13 +102,11 @@ export default function ReviewPage() {
   }
 
   function girDisplay(h: HoleScore) {
-    if (h.gir === 'hit') return '\u2713';
-    if (h.gir === 'left') return 'L';
-    if (h.gir === 'right') return 'R';
-    if (h.gir === 'short') return 'S';
-    if (h.gir === 'over') return 'O';
-    if (h.gir === 'pin_high') return 'PH';
-    return '--';
+    if (h.gir_hit === null) return '--';
+    const abbrevMap: Record<string, string> = { left: 'L', right: 'R', short: 'S', over: 'O', pin_high: 'PH' };
+    const pin = h.pin_position?.map((p) => abbrevMap[p] ?? p).join(',') ?? '';
+    if (h.gir_hit) return pin ? `\u2713 ${pin}` : '\u2713';
+    return pin ? `\u2717 ${pin}` : '\u2717';
   }
 
   function SubtotalRow({ label, stats }: { label: string; stats: ReturnType<typeof subtotal> }) {
