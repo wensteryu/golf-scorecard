@@ -4,7 +4,11 @@ export type ScorecardStatus = 'in_progress' | 'submitted' | 'reviewed';
 
 export type FairwayResult = 'hit' | 'left' | 'right' | null;
 
-export type GIRResult = 'hit' | 'left' | 'right' | 'short' | 'long' | null;
+export type GIRResult = 'hit' | 'left' | 'right' | 'short' | 'over' | 'pin_high' | null;
+
+export type ClubUsed = 'LW' | 'SW' | 'GW' | 'PW' | '9i' | '8i' | '7i' | '6i' | '5i' | '4i' | '3i' | '5w' | '3w' | 'D' | null;
+
+export type FirstPuttResult = 'made' | 'short' | 'over' | 'high_side' | 'low_side' | null;
 
 export type MentalityRating = 1 | 2 | 3 | 4;
 
@@ -68,6 +72,10 @@ export interface HoleScore {
   penalty_strokes: number;
   chip_in: boolean;
   coach_note: string | null;
+  fairway_miss_distance: number | null;
+  club_used: string | null;
+  approach_distance: number | null;
+  first_putt_result: FirstPuttResult;
 }
 
 export interface Notification {
@@ -98,7 +106,8 @@ export interface RoundStats {
   girMissedLeft: number;
   girMissedRight: number;
   girMissedShort: number;
-  girMissedLong: number;
+  girMissedOver: number;
+  girMissedPinHigh: number;
   totalPutts: number;
   onePutts: number;
   threePutts: number;
@@ -109,4 +118,12 @@ export interface RoundStats {
   par4ScoringToPar: number;
   par5ScoringToPar: number;
   penaltyStrokes: number;
+  avgFairwayMissDistance: number | null;
+  avgApproachDistance: number | null;
+  clubUsageCounts: Record<string, number>;
+  firstPuttMade: number;
+  firstPuttShort: number;
+  firstPuttOver: number;
+  firstPuttHighSide: number;
+  firstPuttLowSide: number;
 }

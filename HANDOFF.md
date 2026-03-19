@@ -10,11 +10,8 @@
 - `src/app/` — Routes split by role (`/student/*`, `/coach/*`) + auth (`/login`, `/onboarding`, `/auth/callback`)
 - `src/components/ui/` — Reusable: button, card, progress-bar, stepper, toggle-group
 - `src/components/scorecard/` — Domain: hole-input (core UX), celebration-card
-- `src/components/notifications/` — NotificationBell with Supabase Realtime
 - `src/lib/` — types.ts, calculations.ts, supabase/{client,server,middleware}.ts
-- `src/hooks/` — use-notifications.ts
-- `src/middleware.ts` — Auth guard + role-based routing
-- `supabase/migrations/001_initial_schema.sql` — 6 tables, RLS policies, triggers
+- `supabase/migrations/` — 4 migrations (001 initial, 002 open course access, 003 fix profiles recursion, 004 coaching fields)
 
 **DB Tables**: `profiles`, `golf_courses`, `course_holes`, `scorecards`, `hole_scores`, `notifications`. All RLS-protected.
 
@@ -22,73 +19,71 @@
 
 ## 2. Current Status
 
-### Completed (across prior sessions)
-- Full MVP: 39 files, 6500+ LOC (`99b2057`)
-- Supabase project created, `.env.local` configured, migration applied
-- Google OAuth sign-in (`50b0f6e`)
-- Removed invite code system — single-coach model (`7fc97e4`, `52bbb18`)
-- Admin role switcher for `wenjyu@gmail.com` (`9444003`)
-- Fixed RLS infinite recursion (`28f6116`) and profile creation (`986336b`)
-- Scoring UX: par selector per hole (`50bac5f`), redesigned progress bar with hole numbers/scores/clickable (`bf24292`)
-- Auto-save: immediate save on input, catches swipe/close/hide events (`92661db`)
-- Auto-save par as default score when moving to next hole (`f47ef3b`)
-- Par changes sync to `course_holes` for future rounds (`abcce06`)
-- Home button with save-before-navigate (`7c4c331`)
-- Fixed save to use `.update()` instead of `.upsert()` for hole scores (`eb15531`)
-- UX: delete in-progress rounds, inline save feedback (`d18def0`)
-- Branded with Elite Golf Realm dragon logo (`e9ea1bb`)
+### Completed This Session (2026-03-19)
+Implemented Stan's 4 new coaching variables — full stack, all code changes done:
 
-### This Session (2026-03-17)
-All work listed in "Completed" above was done this session — from initial `create-next-app` through full MVP, deployment, and UX iteration.
+- **Migration** (`supabase/migrations/004_add_coaching_fields.sql`) — Adds `fairway_miss_distance`, `club_used`, `approach_distance`, `first_putt_result` columns. Drops old GIR constraint first, migrates `gir='long'→'over'`, adds new constraint with `'over'` and `'pin_high'`.
+- **Types** (`src/lib/types.ts`) — `GIRResult` updated (`'long'`→`'over'`, added `'pin_high'`). New types: `ClubUsed`, `FirstPuttResult`. `HoleScore` extended with 4 fields. `RoundStats` extended with new aggregate stats.
+- **Stepper** (`src/components/ui/stepper.tsx`) — Added `step` prop (default 1) for 5-yard increments.
+- **HoleInput** (`src/components/scorecard/hole-input.tsx`) — Full redesign: 4 sections (Off the Tee / Approach Shot / On the Green / Other). FW miss distance stepper (conditional on miss), club dropdown, approach distance input, first putt result toggle (conditional on putts>0, auto-sets "Made" when putts=1). Up & Down and Chip In moved under "Other", shown only when GIR missed.
+- **Round init** (`src/app/student/new/page.tsx`) — New fields initialized as `null`.
+- **Calculations** (`src/lib/calculations.ts`) — `girMissedLong`→`girMissedOver`, added `girMissedPinHigh`, `avgFairwayMissDistance`, `avgApproachDistance`, `clubUsageCounts`, 5 first putt result counts.
+- **Summary** (`src/app/student/round/[id]/summary/page.tsx`) — Updated GIR labels (Over/Pin High), avg FW miss distance, new Approach card, 1st Putt Tendency section.
+- **Review** (`src/app/student/round/[id]/review/page.tsx`) — GIR display: `'over'`→`'O'`, `'pin_high'`→`'PH'`.
+- **Coach review** (`src/app/coach/review/[id]/page.tsx`) — Updated GIR labels, expanded view shows Club/Approach Distance/1st Putt Result/FW Miss Distance.
 
-### Known Issues / Unverified
-- **Saving scores may still fail** — switched from `.upsert()` to `.update()` (`eb15531`) but user reported saves still not persisting. Root cause may be RLS or the `hole_scores` rows not being pre-created correctly. **This is the #1 issue to investigate next session.** Check browser console for `"Save failed:"` errors.
-- **No tests** — zero test files exist
-- **README.md** is still generic Next.js boilerplate
-- **Middleware uses deprecated `middleware` convention** — Next.js 16 warns to use `proxy` instead (non-blocking)
-- **Coach empty state** still references "invite code" (`src/app/coach/page.tsx` ~line 209) — needs updating
+### Blocker Encountered & Fixed
+- **Migration ordering bug**: Original migration tried `UPDATE gir='over'` while old constraint (only allowing `'long'`) was still active → constraint violation error. **Fixed**: reordered to DROP constraint first, then UPDATE data, then ADD new constraint. Corrected SQL provided to user; migration file updated.
+
+### NOT Yet Done
+- **Migration status UNKNOWN** — user was given corrected SQL to run in Supabase SQL editor but session ended before confirming success
+- **Changes NOT committed** — all 8 modified files + 1 new migration + HANDOFF.md are uncommitted
+- **No end-to-end testing** — `npx tsc --noEmit` passes clean, but no runtime verification with real data
 
 ## 3. Key Decisions
 
 | Decision | Rationale |
 |---|---|
-| Supabase magic link + Google OAuth | Simplicity for student athletes; no password management |
-| Single-coach model (no invite codes) | Simplified onboarding — only 1 coach uses the app |
-| Admin role switcher for `wenjyu@gmail.com` | Coach/student dual-role testing from single account |
-| Auto-save with immediate flush on input | Prevents data loss; no explicit "save" button needed |
-| Par auto-fills as default score | Students only edit non-par holes — faster entry |
-| `.update()` over `.upsert()` for hole scores | Upsert was causing issues; update works with existing rows |
-| All stats auto-calculated from `hole_scores` | Zero manual math — matches paper scorecard stats exactly |
-| Fairway input hidden on par 3 holes | Par 3s have no fairway — matches paper scorecard behavior |
-| Up-and-down conditional on GIR miss | Only relevant when green is missed — reduces clutter |
-| `@theme inline` in globals.css for Tailwind 4 | Custom palette: `golf-green`, `golf-blue`, `golf-orange`, `golf-red`, `golf-gray-*` |
+| GIR `'long'` → `'over'` rename | Coach Stan's terminology preference; migration handles existing data |
+| GIR `'pin_high'` added | New miss category Stan wants to track for coaching analysis |
+| Migration: drop constraint → update data → add constraint | Must drop old constraint before writing new enum values; original order caused CHECK violation |
+| Section dividers (not collapsible) | Matches approved mockup; keeps all fields visible, just visually organized |
+| Club as `<select>` dropdown | 15 options too many for toggle pills |
+| FW miss distance: stepper with step=5 | 5-yard increments match how golfers estimate miss distance |
+| Auto-set first putt result to "Made" when putts=1 | If 1 putt on the green, it was obviously made — saves a tap |
+| Chip In & Up and Down hidden when GIR=hit | Not applicable when green is hit in regulation |
 
 ## 4. Next Steps
 
-**Priority 1 — Fix score saving (CRITICAL):**
-1. Debug why `.update()` on `hole_scores` isn't persisting — check RLS policies, check if rows exist after round creation, check browser console for errors
-2. Key files: `src/app/student/round/[id]/page.tsx` (handleFieldChange ~line 114), `src/app/student/new/page.tsx` (hole_score row creation)
-3. May need to add `SUPABASE_SERVICE_ROLE_KEY` for debugging or temporarily disable RLS on `hole_scores` to isolate
+**Priority 1 — Verify migration applied:**
+1. Check if corrected SQL was run: `SELECT column_name FROM information_schema.columns WHERE table_name = 'hole_scores' AND column_name IN ('fairway_miss_distance', 'club_used', 'approach_distance', 'first_putt_result');`
+2. Verify GIR constraint: `SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'hole_scores_gir_check';`
+3. If not applied, run the corrected SQL from `supabase/migrations/004_add_coaching_fields.sql`
 
-**Priority 2 — UX improvements from audit (see table in session history):**
-- Items #1 (confirm on leave), #5 (confirm on submit), #6 (progress bar touch targets) rated HIGH
-- Items #4 (coach empty state mentions invite code) rated HIGH — quick fix
+**Priority 2 — Commit and push:**
+1. Commit all changes (8 modified + 1 new migration file)
+2. Push to main → Vercel auto-deploys
+3. **CRITICAL**: Do NOT push before migration is confirmed applied — deploy will break if new columns don't exist
 
-**Priority 3 — Remaining polish:**
-- Add tests (especially `lib/calculations.ts` — verify against reference scorecard data)
-- Update README.md
-- Mobile viewport testing
-- Skeleton loading states
-- UX audit items rated M/L
+**Priority 3 — End-to-end testing:**
+1. Create new round → test all 4 new fields save correctly
+2. Test par 3 hole (Off the Tee section hidden)
+3. Test fairway miss → distance stepper appears; fairway hit → distance clears to null
+4. Test putts=0 → first putt result hidden; putts≥1 → shown; putts=1 → auto-sets "Made"
+5. Verify Summary, Review, Coach Review pages display new/renamed stats
+6. Load existing scorecard → verify backward compat (nulls for new fields)
+
+**Priority 4 — Polish:**
+- Mobile testing of new HoleInput layout (more fields = more scrolling)
+- Verify toggle-group handles 6 GIR options well on small screens
 
 ## 5. Context Notes
 
-- **Reference scorecard images** exist in project root (`IMG_3104*.JPG`, `IMG_3105*.JPG`) but are gitignored. These are Zoe Yu's handwritten scorecards from Coyote Creek, Norcal Jr Cup, 2/28/26.
-- **Paper scorecard stats from reference**: Score 85 (par 72, +13), Fairways 6/14 (missed L:7, R:1), GIR 9 (missed L:1, R:1, Short:5, Long:2), Putts 39 (1-putts:3, 3-putts:4, chip-ins:0), Up&Down 3/9, Par3:+3, Par4:+8, Par5:+2, Penalties:0, 100 yards in: 52, Mentality: 3.
+- **Mockup reference**: `mockup-enhanced-hole-input.png` in project root — approved design for the new layout
+- **Stan's request doc**: `stan_rev1.md` in project root — original coaching variable requirements
+- **Save mechanism unchanged** — `handleFieldChange` in `round/[id]/page.tsx` uses generic `{ [field]: value }` pattern. New fields auto-work with debounced save.
+- **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app`. Auto-deploys on push to main.
+- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`.
+- **Admin email**: `wenjyu@gmail.com` — sees RoleSwitcher for dual-role testing.
 - **No CLAUDE.md in project** — global CLAUDE.md at `~/.claude/CLAUDE.md` governs workflow.
-- **Deployed to Vercel** at `https://golf-scorecard-iota.vercel.app`. Auto-deploys on push to main.
-- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Three migrations applied (001 initial, 002 open course access, 003 fix profiles recursion). Credentials in `.env.local`.
-- **Google OAuth** configured: Client ID `181456796395-8ler...apps.googleusercontent.com`, redirect URI `https://flraumgjaubkauconyoq.supabase.co/auth/v1/callback`.
-- **Admin email**: `wenjyu@gmail.com` — bypasses role routing, sees RoleSwitcher button (`src/lib/admin.ts`).
-- **User is frustrated with save reliability** — this is the top priority. The UX audit produced a 22-item table; items #3 (delete rounds) and #7 (inline save feedback) were implemented this session.
-- **Git remote**: `origin` → `wensteryu/golf-scorecard` on GitHub. Active account is `wensteryu`.
+- **TypeScript compiles clean** — zero errors from `npx tsc --noEmit`.

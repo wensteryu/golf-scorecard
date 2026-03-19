@@ -4,6 +4,7 @@ interface StepperProps {
   value: number;
   min?: number;
   max?: number;
+  step?: number;
   onChange: (value: number) => void;
   label?: string;
   className?: string;
@@ -13,6 +14,7 @@ export function Stepper({
   value,
   min = 1,
   max = 20,
+  step = 1,
   onChange,
   label,
   className = '',
@@ -31,7 +33,7 @@ export function Stepper({
         {/* Decrement button */}
         <button
           type="button"
-          onClick={() => canDecrement && onChange(value - 1)}
+          onClick={() => canDecrement && onChange(value - step)}
           disabled={!canDecrement}
           aria-label="Decrease"
           className={[
@@ -59,7 +61,7 @@ export function Stepper({
         {/* Increment button */}
         <button
           type="button"
-          onClick={() => canIncrement && onChange(value + 1)}
+          onClick={() => canIncrement && onChange(value + step)}
           disabled={!canIncrement}
           aria-label="Increase"
           className={[

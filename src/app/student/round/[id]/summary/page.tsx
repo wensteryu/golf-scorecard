@@ -318,12 +318,48 @@ export default function SummaryPage() {
                   Short: {stats.girMissedShort}
                 </span>
                 <span className="text-xs text-golf-gray-400">
-                  Long: {stats.girMissedLong}
+                  Over: {stats.girMissedOver}
+                </span>
+                <span className="text-xs text-golf-gray-400">
+                  Pin High: {stats.girMissedPinHigh}
                 </span>
               </div>
+              {stats.avgFairwayMissDistance !== null && (
+                <div className="mt-2">
+                  <span className="text-xs text-golf-gray-400">
+                    Avg FW Miss: {stats.avgFairwayMissDistance} yds
+                  </span>
+                </div>
+              )}
             </div>
           </CardBody>
         </Card>
+
+        {/* Approach Section */}
+        {(stats.avgApproachDistance !== null || Object.keys(stats.clubUsageCounts).length > 0) && (
+          <Card>
+            <CardHeader>Approach</CardHeader>
+            <CardBody>
+              {stats.avgApproachDistance !== null && (
+                <StatRow label="Avg Approach Distance" value={`${stats.avgApproachDistance} yds`} />
+              )}
+              {Object.keys(stats.clubUsageCounts).length > 0 && (
+                <div className="border-t border-golf-gray-100 mt-2 pt-2">
+                  <span className="text-xs text-golf-gray-400 uppercase tracking-wide">Club Usage</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {Object.entries(stats.clubUsageCounts)
+                      .sort((a, b) => b[1] - a[1])
+                      .map(([club, count]) => (
+                        <span key={club} className="inline-flex items-center gap-1 bg-golf-gray-100 text-golf-gray-500 text-xs font-bold px-2 py-1 rounded-lg">
+                          {club}: {count}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </CardBody>
+          </Card>
+        )}
 
         {/* Short Game Section */}
         <Card>
@@ -349,6 +385,18 @@ export default function SummaryPage() {
                 color="bg-golf-blue"
               />
             </div>
+            {(stats.firstPuttMade + stats.firstPuttShort + stats.firstPuttOver + stats.firstPuttHighSide + stats.firstPuttLowSide) > 0 && (
+              <div className="border-t border-golf-gray-100 mt-2 pt-2">
+                <span className="text-xs text-golf-gray-400 uppercase tracking-wide">1st Putt Tendency</span>
+                <div className="mt-2 space-y-1">
+                  <StatRow label="Made" value={stats.firstPuttMade} />
+                  <StatRow label="Short" value={stats.firstPuttShort} />
+                  <StatRow label="Over" value={stats.firstPuttOver} />
+                  <StatRow label="High Side" value={stats.firstPuttHighSide} />
+                  <StatRow label="Low Side" value={stats.firstPuttLowSide} />
+                </div>
+              </div>
+            )}
           </CardBody>
         </Card>
 

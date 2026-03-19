@@ -171,6 +171,15 @@ export default function ReviewScorecardPage() {
   function girLabel(val: string | null) {
     if (!val) return '--';
     if (val === 'hit') return 'Hit';
+    if (val === 'pin_high') return 'Pin High';
+    if (val === 'over') return 'Over';
+    return val.charAt(0).toUpperCase() + val.slice(1);
+  }
+
+  function firstPuttResultLabel(val: string | null) {
+    if (!val) return '--';
+    if (val === 'high_side') return 'High Side';
+    if (val === 'low_side') return 'Low Side';
     return val.charAt(0).toUpperCase() + val.slice(1);
   }
 
@@ -370,6 +379,21 @@ export default function ReviewScorecardPage() {
 
                   {isExpanded && (
                     <div className="px-5 pb-4 pt-0">
+                      {/* Per-hole detail stats */}
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs text-golf-gray-400">
+                        {hole.club_used && (
+                          <span>Club: <span className="font-bold text-golf-gray-500">{hole.club_used}</span></span>
+                        )}
+                        {hole.approach_distance != null && (
+                          <span>Approach: <span className="font-bold text-golf-gray-500">{hole.approach_distance} yds</span></span>
+                        )}
+                        {hole.first_putt_result && (
+                          <span>1st Putt: <span className="font-bold text-golf-gray-500">{firstPuttResultLabel(hole.first_putt_result)}</span></span>
+                        )}
+                        {hole.fairway_miss_distance != null && (
+                          <span>FW Miss: <span className="font-bold text-golf-gray-500">{hole.fairway_miss_distance} yds</span></span>
+                        )}
+                      </div>
                       <label className="text-xs font-bold text-golf-gray-400 uppercase tracking-wide block mb-1">
                         Coach Note
                       </label>

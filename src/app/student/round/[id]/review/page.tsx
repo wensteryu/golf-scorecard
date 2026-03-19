@@ -106,7 +106,8 @@ export default function ReviewPage() {
     if (h.gir === 'left') return 'L';
     if (h.gir === 'right') return 'R';
     if (h.gir === 'short') return 'S';
-    if (h.gir === 'long') return 'Lg';
+    if (h.gir === 'over') return 'O';
+    if (h.gir === 'pin_high') return 'PH';
     return '--';
   }
 

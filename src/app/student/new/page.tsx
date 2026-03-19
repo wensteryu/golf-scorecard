@@ -171,6 +171,10 @@ export default function NewScorecardPage() {
           up_and_down: null,
           penalty_strokes: 0,
           chip_in: false,
+          fairway_miss_distance: null,
+          club_used: null,
+          approach_distance: null,
+          first_putt_result: null,
         };
       });
 

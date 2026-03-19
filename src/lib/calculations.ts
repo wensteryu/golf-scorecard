@@ -23,13 +23,45 @@ export function calculateStats(holes: HoleScore[]): RoundStats {
   const girMissedLeft = holes.filter((h) => h.gir === 'left').length;
   const girMissedRight = holes.filter((h) => h.gir === 'right').length;
   const girMissedShort = holes.filter((h) => h.gir === 'short').length;
-  const girMissedLong = holes.filter((h) => h.gir === 'long').length;
+  const girMissedOver = holes.filter((h) => h.gir === 'over').length;
+  const girMissedPinHigh = holes.filter((h) => h.gir === 'pin_high').length;
+
+  // Fairway miss distance
+  const fwMissDistances = holes
+    .filter((h) => h.fairway_miss_distance != null)
+    .map((h) => h.fairway_miss_distance!);
+  const avgFairwayMissDistance = fwMissDistances.length > 0
+    ? Math.round(fwMissDistances.reduce((a, b) => a + b, 0) / fwMissDistances.length)
+    : null;
+
+  // Approach distance
+  const approachDistances = holes
+    .filter((h) => h.approach_distance != null)
+    .map((h) => h.approach_distance!);
+  const avgApproachDistance = approachDistances.length > 0
+    ? Math.round(approachDistances.reduce((a, b) => a + b, 0) / approachDistances.length)
+    : null;
+
+  // Club usage counts
+  const clubUsageCounts: Record<string, number> = {};
+  holes.forEach((h) => {
+    if (h.club_used) {
+      clubUsageCounts[h.club_used] = (clubUsageCounts[h.club_used] ?? 0) + 1;
+    }
+  });
 
   // Putt stats
   const totalPutts = sum(holes, 'putts');
   const onePutts = holes.filter((h) => h.putts === 1).length;
   const threePutts = holes.filter((h) => (h.putts ?? 0) >= 3).length;
   const chipIns = holes.filter((h) => h.chip_in).length;
+
+  // First putt result stats
+  const firstPuttMade = holes.filter((h) => h.first_putt_result === 'made').length;
+  const firstPuttShort = holes.filter((h) => h.first_putt_result === 'short').length;
+  const firstPuttOver = holes.filter((h) => h.first_putt_result === 'over').length;
+  const firstPuttHighSide = holes.filter((h) => h.first_putt_result === 'high_side').length;
+  const firstPuttLowSide = holes.filter((h) => h.first_putt_result === 'low_side').length;
 
   // Up and down
   const upAndDownHoles = holes.filter((h) => h.up_and_down !== null);
@@ -59,7 +91,8 @@ export function calculateStats(holes: HoleScore[]): RoundStats {
     girMissedLeft,
     girMissedRight,
     girMissedShort,
-    girMissedLong,
+    girMissedOver,
+    girMissedPinHigh,
     totalPutts,
     onePutts,
     threePutts,
@@ -70,6 +103,14 @@ export function calculateStats(holes: HoleScore[]): RoundStats {
     par4ScoringToPar: scoringToPar(4),
     par5ScoringToPar: scoringToPar(5),
     penaltyStrokes: sum(holes, 'penalty_strokes'),
+    avgFairwayMissDistance,
+    avgApproachDistance,
+    clubUsageCounts,
+    firstPuttMade,
+    firstPuttShort,
+    firstPuttOver,
+    firstPuttHighSide,
+    firstPuttLowSide,
   };
 }
 
