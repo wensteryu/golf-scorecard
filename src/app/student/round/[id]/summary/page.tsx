@@ -101,6 +101,8 @@ export default function SummaryPage() {
 
   const [scorecard, setScorecard] = useState<Scorecard | null>(null);
   const [holeScores, setHoleScores] = useState<HoleScore[]>([]);
+  const [studentName, setStudentName] = useState('');
+  const [courseName, setCourseName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -124,6 +126,14 @@ export default function SummaryPage() {
 
         setScorecard(sc as Scorecard);
         setHoleScores(sorted);
+
+        // Fetch student name and course name for email notification
+        const [profileRes, courseRes] = await Promise.all([
+          supabase.from('profiles').select('full_name').eq('id', sc.student_id).single(),
+          supabase.from('golf_courses').select('name').eq('id', sc.course_id).single(),
+        ]);
+        if (profileRes.data) setStudentName(profileRes.data.full_name);
+        if (courseRes.data) setCourseName(courseRes.data.name);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load summary');
       } finally {
@@ -152,10 +162,25 @@ export default function SummaryPage() {
 
       setScorecard((prev) => (prev ? { ...prev, status: 'submitted' } : prev));
       setShowConfetti(true);
+
+      // Fire-and-forget email notification to coach
+      const scores = calculateStats(holeScores);
+      fetch('/api/notify-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentName,
+          courseName,
+          roundDate: scorecard.round_date,
+          totalScore: scores.totalScore,
+          scoreToPar: scores.scoreToPar,
+          scorecardId,
+        }),
+      }).catch(() => {});
     } catch {
       setSubmitting(false);
     }
-  }, [scorecard, submitting, scorecardId, supabase]);
+  }, [scorecard, submitting, scorecardId, supabase, holeScores, studentName, courseName]);
 
   if (loading) {
     return (
