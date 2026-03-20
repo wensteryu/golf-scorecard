@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const COACH_EMAIL = 'standumdumaya@gmail.com';
+const COACH_EMAIL = 'wenjyu@gmail.com'; // TODO: change to standumdumaya@gmail.com after verifying a domain in Resend
 
 export async function POST(request: NextRequest) {
   try {

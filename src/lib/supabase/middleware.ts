@@ -36,6 +36,11 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // API routes — skip auth redirect (they handle their own auth if needed)
+  if (pathname.startsWith('/api/')) {
+    return supabaseResponse;
+  }
+
   // Public routes
   if (pathname === '/login' || pathname.startsWith('/auth/')) {
     if (user) {
