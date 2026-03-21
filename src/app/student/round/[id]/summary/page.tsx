@@ -163,7 +163,7 @@ export default function SummaryPage() {
       setScorecard((prev) => (prev ? { ...prev, status: 'submitted' } : prev));
       setShowConfetti(true);
 
-      // Fire-and-forget email notification to coach
+      // Fire-and-forget SMS notification to coach
       const scores = calculateStats(holeScores);
       fetch('/api/notify-coach', {
         method: 'POST',
