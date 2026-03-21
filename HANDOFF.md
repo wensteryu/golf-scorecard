@@ -19,7 +19,25 @@
 
 ## 2. Current Status
 
-### Completed This Session (2026-03-19) — All committed & pushed
+### Completed This Session (2026-03-21) — All committed & pushed
+
+**Replaced email coach notification with Twilio SMS** (commit `227b5e3`)
+- `src/app/api/notify-coach/route.ts` — uses `twilio` SDK; sends plain-text SMS to `COACH_PHONE_NUMBER`
+- `package.json` — removed `resend`, added `twilio@^5.13.0`
+- `.env.local.example` — updated with Twilio env var placeholders
+- `.env.local` — contains placeholder values; **SMS will not work until real credentials are filled in**
+
+**Action required before SMS works:**
+Fill in `.env.local` with real Twilio credentials:
+```
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=...
+TWILIO_PHONE_NUMBER=+1xxxxxxxxxx   # Twilio "from" number
+COACH_PHONE_NUMBER=+1xxxxxxxxxx    # coach's actual phone
+```
+Also add these four vars to Vercel Project Settings → Environment Variables.
+
+### Completed Previous Session (2026-03-19) — All committed & pushed
 
 **1. Split GIR into Yes/No + Pin Position multi-select** (commit `7d596f6`)
 - Migration 005: `gir` (enum) → `gir_hit` (boolean) + `pin_position` (text[])
@@ -48,9 +66,11 @@
 
 ## 4. Next Steps
 
-1. **Jaden's data correction** — Fairway "hit" values from before the fix are likely missing in DB. Either re-enter those holes or manually UPDATE in Supabase SQL Editor.
-2. **Manual E2E test** — Log in, start a round, verify: Fairway Hit saves correctly, GIR Yes/No + Pin Position works, Putts 0/1 saves correctly, Summary/Review totals are accurate.
-3. **Untracked files** — `ground truth/`, `mockup-enhanced-hole-input.png`, `stan_rev1.md` are reference artifacts in the repo root. Consider .gitignore or committing them.
+1. **Configure Twilio credentials** — Fill `.env.local` and Vercel env vars (see Current Status above). Then submit a test round and verify coach receives SMS with correct content and review link.
+2. **Optional: per-coach phone in DB** — Currently `COACH_PHONE_NUMBER` is a global env var. If multi-coach is ever needed, move to `profiles` table.
+3. **Jaden's data correction** — Fairway "hit" values from before the debounce fix are likely missing in DB. Either re-enter those holes or manually UPDATE in Supabase SQL Editor.
+4. **Manual E2E test** — Log in, start a round, verify: Fairway Hit saves correctly, GIR Yes/No + Pin Position works, Putts 0/1 saves correctly, Summary/Review totals are accurate.
+5. **Untracked files** — `ground truth/`, `mockup-enhanced-hole-input.png`, `stan_rev1.md` are reference artifacts in the repo root. Consider .gitignore or committing them.
 
 ## 5. Context Notes
 
