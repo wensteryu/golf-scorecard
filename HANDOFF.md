@@ -19,63 +19,57 @@
 
 ## 2. Current Status
 
-### Completed This Session (2026-03-21) — All committed & pushed
+### This Session (2026-03-22) — UNCOMMITTED CHANGES
 
-**Replaced email coach notification with Twilio SMS** (commit `227b5e3`)
-- `src/app/api/notify-coach/route.ts` — uses `twilio` SDK; sends plain-text SMS to `COACH_PHONE_NUMBER`
-- `package.json` — removed `resend`, added `twilio@^5.13.0`
-- `.env.local.example` — updated with Twilio env var placeholders
-- `.env.local` — contains placeholder values; **SMS will not work until real credentials are filled in**
+**Replaced Twilio SMS with Nodemailer + Gmail email notification**
 
-**Action required before SMS works:**
-Fill in `.env.local` with real Twilio credentials:
-```
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=...
-TWILIO_PHONE_NUMBER=+1xxxxxxxxxx   # Twilio "from" number
-COACH_PHONE_NUMBER=+1xxxxxxxxxx    # coach's actual phone
-```
-Also add these four vars to Vercel Project Settings → Environment Variables.
+Changed files (all uncommitted):
+- `src/app/api/notify-coach/route.ts` — rewrote: Twilio SDK → Nodemailer with Gmail SMTP. Sends HTML email with round details, score table, and green "Review Round" button. Env vars: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `COACH_EMAIL`.
+- `package.json` — removed `twilio`, added `nodemailer` + `@types/nodemailer`
+- `package-lock.json` — updated accordingly
+- `.env.local.example` — replaced Twilio placeholders with Gmail placeholders
+- `src/app/student/round/[id]/summary/page.tsx` line 166 — comment: "SMS" → "email"
+- `.env.local` — has real credentials: `GMAIL_USER=wenjyu@gmail.com`, `GMAIL_APP_PASSWORD=<real>`, `COACH_EMAIL=wenjyu@gmail.com` (temp for testing)
 
-### Completed Previous Session (2026-03-19) — All committed & pushed
+**Why the switch**: Twilio toll-free number `+18555933546` failed with error 30032 (toll-free verification required). Gmail email is simpler — no extra service, no verification wait.
 
-**1. Split GIR into Yes/No + Pin Position multi-select** (commit `7d596f6`)
-- Migration 005: `gir` (enum) → `gir_hit` (boolean) + `pin_position` (text[])
-- Toggle group: multi-select mode with `max` constraint
-- Updated: types, calculations, hole-input, new round init, summary, review, coach review
-- Migration applied to live Supabase DB
+**Verified working**:
+- TypeScript: zero errors (`npx tsc --noEmit`)
+- `grep -ri twilio src/` → zero matches
+- Dev server test: `curl POST /api/notify-coach` → `{"success":true}` → **email received** in `wenjyu@gmail.com` inbox with correct subject, HTML body, and review link
+- API contract unchanged — caller in `summary/page.tsx` needs no changes
 
-**2. Fixed critical save bug: batched debounced saves** (commit `dc4f9a5`)
-- Root cause: `handleFieldChange` debounce dropped saves when multiple `onUpdate` calls fired in same event cycle (e.g., Fairway="Hit" triggered fairway + fairway_miss_distance, but only miss_distance was saved)
-- Fix: replaced single `pendingSave` function ref with `pendingChanges` accumulator object — all fields in a debounce window are merged into one `.update()` call
-- Affected flows fixed: Fairway Hit, GIR Yes, Putts 0, Putts 1
+### Previous Sessions — All committed & pushed
 
-### Verification
-- TypeScript: zero errors
-- Production deployed via Vercel auto-deploy, site loads correctly
-- Cannot do authenticated E2E testing from CLI (auth required)
+**Session 2026-03-21**: Replaced Resend email with Twilio SMS (commit `227b5e3`). Now reverted this session.
+
+**Session 2026-03-19**: Split GIR into Yes/No + Pin Position (commit `7d596f6`). Fixed batched debounced save bug (commit `dc4f9a5`).
 
 ## 3. Key Decisions
 
 | Decision | Rationale |
 |---|---|
-| Pin Position independent of GIR hit/miss | Richer coaching data — "Hit GIR but short-right of pin" |
-| Pin Position max 2 | Compound beyond 2 doesn't make golf sense |
-| Batch save via pendingChanges object | Prevents field loss when multiple onUpdate calls fire synchronously |
-| fetch keepalive for page unload flush | More reliable than sendBeacon (supports custom headers for Supabase auth) |
+| Gmail + Nodemailer over Twilio SMS | Toll-free verification blocker (error 30032); Gmail simpler for small scale |
+| Gmail + Nodemailer over Resend | No extra service signup; user already has Gmail |
+| HTML email with styled button | Better UX than plain text; coach can click "Review Round" directly |
+| Same API contract preserved | Caller (`summary/page.tsx`) unchanged; fire-and-forget pattern works for both SMS and email |
+| Transporter created per-request | Low volume (1-5 rounds/day); no need for connection pooling |
 
 ## 4. Next Steps
 
-1. **Configure Twilio credentials** — Fill `.env.local` and Vercel env vars (see Current Status above). Then submit a test round and verify coach receives SMS with correct content and review link.
-2. **Optional: per-coach phone in DB** — Currently `COACH_PHONE_NUMBER` is a global env var. If multi-coach is ever needed, move to `profiles` table.
-3. **Jaden's data correction** — Fairway "hit" values from before the debounce fix are likely missing in DB. Either re-enter those holes or manually UPDATE in Supabase SQL Editor.
-4. **Manual E2E test** — Log in, start a round, verify: Fairway Hit saves correctly, GIR Yes/No + Pin Position works, Putts 0/1 saves correctly, Summary/Review totals are accurate.
-5. **Untracked files** — `ground truth/`, `mockup-enhanced-hole-input.png`, `stan_rev1.md` are reference artifacts in the repo root. Consider .gitignore or committing them.
+1. **Get coach's email address from user** — Update `COACH_EMAIL` in `.env.local` (currently set to `wenjyu@gmail.com` for testing).
+2. **Commit and push** — All changes verified working. Commit the 5 changed files (not `.env.local`).
+3. **Add Vercel env vars** — Add `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `COACH_EMAIL` to Vercel Project Settings → Environment Variables. Remove old Twilio vars (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `COACH_PHONE_NUMBER`).
+4. **Production E2E test** — Submit a round on `https://golf-scorecard-iota.vercel.app`, verify coach receives email with working review link (should point to Vercel URL, not localhost).
+5. **Jaden's data correction** — Fairway "hit" values from before the debounce fix (pre-`dc4f9a5`) are likely missing in DB.
+6. **Optional: cancel Twilio** — Twilio account and toll-free number are no longer needed.
 
 ## 5. Context Notes
 
 - **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app`
-- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local` (anon key only, no service role).
+- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local` (anon key only).
 - **Supabase CLI not linked** — migrations must be run manually via SQL Editor.
-- **Admin email**: `wenjyu@gmail.com` — sees RoleSwitcher for dual-role testing.
-- **Save mechanism** (`round/[id]/page.tsx` lines 78-161): now uses `pendingChanges` ref (object accumulator) instead of `pendingSave` ref (single function). Critical to understand for any future save-related changes.
+- **Admin email**: `wenjyu@gmail.com` — sees RoleSwitcher for dual-role testing. Also the `GMAIL_USER` for sending notifications.
+- **Gmail App Password**: real value is in `.env.local`. Generated for "Elite Golf Realm" app.
+- **Review URL logic** (`notify-coach/route.ts` lines 22-27): uses `NEXT_PUBLIC_VERCEL_URL` in production, falls back to `localhost:3000` in dev. Test email showed localhost link — this is expected and correct.
+- **Save mechanism** (`round/[id]/page.tsx` lines 78-161): uses `pendingChanges` ref (object accumulator). Critical for any future save-related changes.
