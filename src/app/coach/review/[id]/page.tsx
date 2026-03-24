@@ -340,6 +340,151 @@ export default function ReviewScorecardPage() {
           </div>
         </section>
 
+        {/* Detailed Breakdown Tiles */}
+        <section>
+          <h2 className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide mb-3">
+            Detailed Breakdown
+          </h2>
+
+          {/* Fairways Tile */}
+          <Card className="mb-3">
+            <CardHeader>
+              Fairways — {stats.fairwaysHit}/{stats.fairwaysTotal}
+            </CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-9 gap-1.5">
+                {holes.map((hole) => {
+                  let bg = 'bg-golf-gray-100 text-golf-gray-300'; // N/A (par 3)
+                  let label = '';
+                  if (hole.par > 3) {
+                    if (hole.fairway === 'hit') {
+                      bg = 'bg-emerald-100 text-emerald-700';
+                      label = '';
+                    } else if (hole.fairway === 'left') {
+                      bg = 'bg-red-100 text-red-600';
+                      label = 'L';
+                    } else if (hole.fairway === 'right') {
+                      bg = 'bg-red-100 text-red-600';
+                      label = 'R';
+                    } else {
+                      bg = 'bg-golf-gray-100 text-golf-gray-400';
+                    }
+                  }
+                  return (
+                    <div
+                      key={hole.hole_number}
+                      className={['flex flex-col items-center justify-center rounded-lg py-1.5', bg].join(' ')}
+                    >
+                      <span className="text-[10px] font-bold leading-none">{hole.hole_number}</span>
+                      {label && <span className="text-[9px] font-bold leading-none mt-0.5">{label}</span>}
+                      {hole.par > 3 && hole.fairway === 'hit' && <span className="text-[9px] leading-none mt-0.5">&#10003;</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap gap-3 mt-3 text-xs text-golf-gray-400">
+                <span>Missed L: <span className="font-bold text-golf-gray-500">{stats.fairwaysMissedLeft}</span></span>
+                <span>Missed R: <span className="font-bold text-golf-gray-500">{stats.fairwaysMissedRight}</span></span>
+                {stats.avgFairwayMissDistance !== null && (
+                  <span>Avg Miss: <span className="font-bold text-golf-gray-500">{stats.avgFairwayMissDistance} yds</span></span>
+                )}
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* GIR Tile */}
+          <Card className="mb-3">
+            <CardHeader>
+              Greens in Regulation — {stats.girHit}/{stats.girTotal}
+            </CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-9 gap-1.5">
+                {holes.map((hole) => {
+                  let bg = 'bg-golf-gray-100 text-golf-gray-400';
+                  const posAbbr: Record<string, string> = { left: 'L', right: 'R', short: 'S', over: 'O', pin_high: 'PH' };
+                  let pinLabel = '';
+                  if (hole.gir_hit === true) {
+                    bg = 'bg-emerald-100 text-emerald-700';
+                  } else if (hole.gir_hit === false) {
+                    bg = 'bg-red-100 text-red-600';
+                    pinLabel = hole.pin_position?.map((p) => posAbbr[p] ?? '').join('/') ?? '';
+                  }
+                  return (
+                    <div
+                      key={hole.hole_number}
+                      className={['flex flex-col items-center justify-center rounded-lg py-1.5', bg].join(' ')}
+                    >
+                      <span className="text-[10px] font-bold leading-none">{hole.hole_number}</span>
+                      {hole.gir_hit === true && <span className="text-[9px] leading-none mt-0.5">&#10003;</span>}
+                      {pinLabel && <span className="text-[8px] font-bold leading-none mt-0.5">{pinLabel}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap gap-3 mt-3 text-xs text-golf-gray-400">
+                <span>L: <span className="font-bold text-golf-gray-500">{stats.pinPositionLeft}</span></span>
+                <span>R: <span className="font-bold text-golf-gray-500">{stats.pinPositionRight}</span></span>
+                <span>Short: <span className="font-bold text-golf-gray-500">{stats.pinPositionShort}</span></span>
+                <span>Over: <span className="font-bold text-golf-gray-500">{stats.pinPositionOver}</span></span>
+                <span>Pin High: <span className="font-bold text-golf-gray-500">{stats.pinPositionPinHigh}</span></span>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Putts Tile */}
+          <Card className="mb-3">
+            <CardHeader>
+              Putts — {stats.totalPutts}
+            </CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-9 gap-1.5">
+                {holes.map((hole) => {
+                  let bg = 'bg-golf-gray-100 text-golf-gray-400';
+                  if (hole.putts === 0) bg = 'bg-blue-100 text-blue-700';
+                  else if (hole.putts === 1) bg = 'bg-emerald-100 text-emerald-700';
+                  else if (hole.putts === 2) bg = 'bg-golf-gray-100 text-golf-gray-500';
+                  else if (hole.putts != null && hole.putts >= 3) bg = 'bg-red-100 text-red-600';
+                  return (
+                    <div
+                      key={hole.hole_number}
+                      className={['flex flex-col items-center justify-center rounded-lg py-1.5', bg].join(' ')}
+                    >
+                      <span className="text-[10px] font-bold leading-none">{hole.hole_number}</span>
+                      <span className="text-xs font-bold leading-none mt-0.5">{hole.putts ?? '-'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* 1st Putts Made with Distance */}
+              {(() => {
+                const madeWithDist = holes.filter(
+                  (h) => h.first_putt_result === 'made' && h.first_putt_distance != null
+                );
+                if (madeWithDist.length === 0) return null;
+                return (
+                  <div className="border-t border-golf-gray-100 mt-3 pt-3">
+                    <span className="text-xs text-golf-gray-400 uppercase tracking-wide">1st Putts Made</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {madeWithDist.map((h) => (
+                        <span
+                          key={h.hole_number}
+                          className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-1 rounded-lg"
+                        >
+                          #{h.hole_number}: {h.first_putt_distance}ft
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+              <div className="flex gap-4 mt-3 text-xs text-golf-gray-400">
+                <span>1-Putts: <span className="font-bold text-golf-gray-500">{stats.onePutts}</span></span>
+                <span>3-Putts: <span className="font-bold text-golf-gray-500">{stats.threePutts}</span></span>
+              </div>
+            </CardBody>
+          </Card>
+        </section>
+
         {/* Per-hole Detail */}
         <section>
           <h2 className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide mb-3">
