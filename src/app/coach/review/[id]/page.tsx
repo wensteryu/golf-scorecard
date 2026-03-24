@@ -124,6 +124,23 @@ export default function ReviewScorecardPage() {
 
       if (updateError) throw updateError;
 
+      // Fire-and-forget email notification to student
+      if (scorecard.student?.email) {
+        fetch('/api/notify-student', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentEmail: scorecard.student.email,
+            studentName: scorecard.student.full_name,
+            courseName: scorecard.course?.name,
+            roundDate: scorecard.round_date,
+            totalScore: stats.totalScore,
+            scoreToPar: stats.scoreToPar,
+            scorecardId: scorecard.id,
+          }),
+        }).catch(() => {});
+      }
+
       setSuccessMsg('Scorecard marked as reviewed!');
       setTimeout(() => router.push('/coach'), 1500);
     } catch (err) {
