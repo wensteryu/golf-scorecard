@@ -312,7 +312,7 @@ export default function ReviewScorecardPage() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mt-3">
+          <div className="grid grid-cols-4 gap-3 mt-3">
             <Card>
               <CardBody className="text-center py-3">
                 <p className="text-lg font-extrabold text-golf-gray-500">
@@ -340,6 +340,16 @@ export default function ReviewScorecardPage() {
                 </p>
                 <p className="text-xs font-bold text-golf-gray-300 uppercase">
                   1-Putts
+                </p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody className="text-center py-3">
+                <p className="text-lg font-extrabold text-golf-gray-500">
+                  {stats.threePutts}
+                </p>
+                <p className="text-xs font-bold text-golf-gray-300 uppercase">
+                  3-Putts
                 </p>
               </CardBody>
             </Card>
