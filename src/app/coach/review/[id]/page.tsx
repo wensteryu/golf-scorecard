@@ -193,6 +193,12 @@ export default function ReviewScorecardPage() {
     return pinStr ? `Missed (${pinStr})` : 'Missed';
   }
 
+  function parScoringColor(value: number) {
+    if (value < 0) return 'text-emerald-600';
+    if (value > 0) return 'text-golf-red';
+    return 'text-golf-gray-500';
+  }
+
   function firstPuttResultLabel(val: string | null) {
     if (!val) return '--';
     if (val === 'high_side') return 'High Side';
@@ -338,6 +344,47 @@ export default function ReviewScorecardPage() {
               </CardBody>
             </Card>
           </div>
+        </section>
+
+        {/* Scoring by Par & 100 Yards In */}
+        <section>
+          <h2 className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide mb-3">
+            Scoring by Par
+          </h2>
+          <Card className="mb-3">
+            <CardBody>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-golf-gray-400">Par 3s</span>
+                <span className={['text-sm font-bold', parScoringColor(stats.par3ScoringToPar)].join(' ')}>
+                  {formatScoreToPar(stats.par3ScoringToPar)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-golf-gray-400">Par 4s</span>
+                <span className={['text-sm font-bold', parScoringColor(stats.par4ScoringToPar)].join(' ')}>
+                  {formatScoreToPar(stats.par4ScoringToPar)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-golf-gray-400">Par 5s</span>
+                <span className={['text-sm font-bold', parScoringColor(stats.par5ScoringToPar)].join(' ')}>
+                  {formatScoreToPar(stats.par5ScoringToPar)}
+                </span>
+              </div>
+            </CardBody>
+          </Card>
+          {scorecard.hundred_yards_in != null && (
+            <Card>
+              <CardBody className="text-center py-3">
+                <p className="text-2xl font-extrabold text-golf-gray-500">
+                  {scorecard.hundred_yards_in}
+                </p>
+                <p className="text-xs font-bold text-golf-gray-300 uppercase">
+                  100 Yards &amp; In
+                </p>
+              </CardBody>
+            </Card>
+          )}
         </section>
 
         {/* Detailed Breakdown Tiles */}
