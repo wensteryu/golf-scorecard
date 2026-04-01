@@ -6,6 +6,15 @@ interface BirdieCelebrationProps {
   type: CelebrationType | null;
 }
 
+// Dragon images rotate each time a celebration triggers
+const DRAGON_IMAGES = ['/dragon.png', '/dragon2.png', '/dragon3.png', '/dragon4.png'];
+let dragonIndex = 0;
+function getNextDragon(): string {
+  const img = DRAGON_IMAGES[dragonIndex % DRAGON_IMAGES.length];
+  dragonIndex++;
+  return img;
+}
+
 const CELEBRATION_CONFIG: Record<
   CelebrationType,
   {
@@ -20,22 +29,22 @@ const CELEBRATION_CONFIG: Record<
     label: 'Birdie!',
     labelColor: 'text-emerald-600',
     dragonCount: 1,
-    dragonSize: 'h-20 w-20',
-    particleEmojis: ['⭐', '✨', '⭐', '✨'],
+    dragonSize: 'h-28 w-28',
+    particleEmojis: ['⭐', '✨', '🐉', '✨'],
   },
   eagle: {
     label: 'Eagle!',
     labelColor: 'text-amber-600',
     dragonCount: 2,
-    dragonSize: 'h-24 w-24',
-    particleEmojis: ['⭐', '🔥', '✨', '⭐', '🔥', '✨'],
+    dragonSize: 'h-32 w-32',
+    particleEmojis: ['⭐', '🔥', '🐉', '⭐', '🔥', '✨'],
   },
   'hole-in-one': {
     label: 'HOLE IN ONE!',
     labelColor: 'text-red-600',
     dragonCount: 3,
-    dragonSize: 'h-28 w-28',
-    particleEmojis: ['🏆', '🔥', '✨', '🌟', '🎉', '🔥', '✨', '🏆'],
+    dragonSize: 'h-36 w-36',
+    particleEmojis: ['🏆', '🔥', '🐉', '🌟', '🎉', '🔥', '🐲', '🏆'],
   },
 };
 
@@ -76,6 +85,12 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
 
   const config = CELEBRATION_CONFIG[type];
 
+  // Pick dragon images for this celebration — each dragon gets a different image
+  const dragons: string[] = [];
+  for (let i = 0; i < config.dragonCount; i++) {
+    dragons.push(getNextDragon());
+  }
+
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
       {/* Screen flash for hole-in-one */}
@@ -95,13 +110,12 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
       {/* Central dragon(s) */}
       <div className="relative flex flex-col items-center">
         <div className="flex items-center gap-2 animate-emoji-pop">
-          {Array.from({ length: config.dragonCount }, (_, i) => (
+          {dragons.map((src, i) => (
             <img
               key={i}
-              src="/logo.png"
+              src={src}
               alt="Dragon"
               className={`${config.dragonSize} object-contain ${i % 2 === 1 ? '-scale-x-100' : ''}`}
-              style={{ animationDelay: `${i * 0.1}s` }}
             />
           ))}
         </div>
