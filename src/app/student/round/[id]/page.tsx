@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { HoleScore, CourseHole } from '@/lib/types';
 import { HoleInput } from '@/components/scorecard/hole-input';
 import { CelebrationCard } from '@/components/scorecard/celebration-card';
+import { BirdieCelebration } from '@/components/scorecard/birdie-celebration';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Button } from '@/components/ui/button';
 
@@ -23,9 +24,11 @@ export default function RoundScoringPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
+  const [celebrationType, setCelebrationType] = useState<'birdie' | 'eagle' | 'hole-in-one' | null>(null);
 
   const saveTimeout = useRef<NodeJS.Timeout>(null);
   const pendingChanges = useRef<Record<string, unknown>>({});
+  const celebrationTimeout = useRef<NodeJS.Timeout>(null);
 
   // Fetch scorecard data on mount
   useEffect(() => {
@@ -145,11 +148,25 @@ export default function RoundScoringPage() {
 
     return () => {
       flushOnHide();
+      if (celebrationTimeout.current) clearTimeout(celebrationTimeout.current);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handleBeforeUnload);
     };
   }, [scorecardId, currentHole]);
+
+  const triggerCelebration = useCallback((type: 'birdie' | 'eagle' | 'hole-in-one') => {
+    if (celebrationTimeout.current) clearTimeout(celebrationTimeout.current);
+    // Force unmount then remount to restart animations
+    setCelebrationType(null);
+    requestAnimationFrame(() => {
+      setCelebrationType(type);
+      const duration = type === 'hole-in-one' ? 3000 : 1800;
+      celebrationTimeout.current = setTimeout(() => {
+        setCelebrationType(null);
+      }, duration);
+    });
+  }, []);
 
   const handleFieldChange = useCallback(
     (field: string, value: unknown) => {
@@ -159,6 +176,20 @@ export default function RoundScoringPage() {
           h.hole_number === currentHole ? { ...h, [field]: value } : h
         )
       );
+
+      // Detect birdie or better when score changes
+      if (field === 'score' && typeof value === 'number') {
+        const hole = holeScores.find((h) => h.hole_number === currentHole);
+        const par = hole?.par ?? courseHoles.find((h) => h.hole_number === currentHole)?.par ?? 4;
+        const diff = value - par;
+        if (value === 1) {
+          triggerCelebration('hole-in-one');
+        } else if (diff <= -2) {
+          triggerCelebration('eagle');
+        } else if (diff === -1) {
+          triggerCelebration('birdie');
+        }
+      }
 
       // Accumulate changes — multiple fields in same tick get batched
       pendingChanges.current[field] = value;
@@ -194,7 +225,7 @@ export default function RoundScoringPage() {
         setTimeout(() => setSaveStatus('idle'), 1500);
       }, 100);
     },
-    [currentHole, scorecardId, courseId, supabase]
+    [currentHole, scorecardId, courseId, supabase, holeScores, courseHoles, triggerCelebration]
   );
 
   // Auto-set score to par if the user didn't explicitly change it
@@ -291,6 +322,8 @@ export default function RoundScoringPage() {
 
   return (
     <div className="min-h-screen bg-golf-gray-50 flex flex-col">
+      <BirdieCelebration type={celebrationType} />
+
       {/* Top bar with progress and save status */}
       <div className="sticky top-0 z-10 bg-surface border-b border-golf-gray-100 px-4 pt-4 pb-3 shadow-sm">
         <div className="flex items-center justify-between mb-3">

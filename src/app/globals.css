@@ -81,3 +81,55 @@ html, body {
   85% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-4px); }
 }
+
+/* Birdie/Eagle/Hole-in-One celebration animations */
+@keyframes emoji-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  50%  { transform: scale(1.4); opacity: 1; }
+  70%  { transform: scale(0.9); }
+  85%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes emoji-fade-out {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.8) translateY(-20px); opacity: 0; }
+}
+
+@keyframes emoji-burst {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--burst-x), var(--burst-y)) scale(0.3); opacity: 0; }
+}
+
+@keyframes label-slide-up {
+  0%   { transform: translateY(10px); opacity: 0; }
+  20%  { transform: translateY(0); opacity: 1; }
+  75%  { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-10px); opacity: 0; }
+}
+
+@keyframes screen-flash {
+  0%   { opacity: 0; }
+  15%  { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+.animate-emoji-pop {
+  animation: emoji-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-emoji-fade-out {
+  animation: emoji-fade-out 0.4s ease-in forwards;
+}
+
+.animate-emoji-burst {
+  animation: emoji-burst 0.8s ease-out forwards;
+}
+
+.animate-label-slide-up {
+  animation: label-slide-up 1.8s ease-in-out forwards;
+}
+
+.animate-screen-flash {
+  animation: screen-flash 0.6s ease-out forwards;
+}
