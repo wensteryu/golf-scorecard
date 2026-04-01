@@ -20,7 +20,6 @@ const CELEBRATION_CONFIG: Record<
   {
     label: string;
     labelColor: string;
-    dragonCount: number;
     dragonSize: string;
     particleEmojis: string[];
   }
@@ -28,22 +27,19 @@ const CELEBRATION_CONFIG: Record<
   birdie: {
     label: 'Birdie!',
     labelColor: 'text-emerald-600',
-    dragonCount: 1,
     dragonSize: 'h-28 w-28',
     particleEmojis: ['⭐', '✨', '🐉', '✨'],
   },
   eagle: {
     label: 'Eagle!',
     labelColor: 'text-amber-600',
-    dragonCount: 2,
-    dragonSize: 'h-32 w-32',
+    dragonSize: 'h-40 w-40',
     particleEmojis: ['⭐', '🔥', '🐉', '⭐', '🔥', '✨'],
   },
   'hole-in-one': {
     label: 'HOLE IN ONE!',
     labelColor: 'text-red-600',
-    dragonCount: 3,
-    dragonSize: 'h-36 w-36',
+    dragonSize: 'h-48 w-48',
     particleEmojis: ['🏆', '🔥', '🐉', '🌟', '🎉', '🔥', '🐲', '🏆'],
   },
 };
@@ -85,11 +81,7 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
 
   const config = CELEBRATION_CONFIG[type];
 
-  // Pick dragon images for this celebration — each dragon gets a different image
-  const dragons: string[] = [];
-  for (let i = 0; i < config.dragonCount; i++) {
-    dragons.push(getNextDragon());
-  }
+  const dragonSrc = getNextDragon();
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
@@ -109,15 +101,12 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
 
       {/* Central dragon(s) */}
       <div className="relative flex flex-col items-center">
-        <div className="flex items-center gap-2 animate-emoji-pop">
-          {dragons.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt="Dragon"
-              className={`${config.dragonSize} object-contain ${i % 2 === 1 ? '-scale-x-100' : ''}`}
-            />
-          ))}
+        <div className="animate-emoji-pop">
+          <img
+            src={dragonSrc}
+            alt="Dragon"
+            className={`${config.dragonSize} object-contain`}
+          />
         </div>
 
         {/* Label */}
