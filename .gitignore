@@ -43,6 +43,9 @@ ground truth/
 mockup-*.png
 stan_rev*.md
 
+# supabase temp
+supabase/.temp/
+
 # vercel
 .vercel
 
