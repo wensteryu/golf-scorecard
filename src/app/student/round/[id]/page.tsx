@@ -161,7 +161,7 @@ export default function RoundScoringPage() {
     setCelebrationType(null);
     requestAnimationFrame(() => {
       setCelebrationType(type);
-      const duration = type === 'hole-in-one' ? 3000 : 1800;
+      const duration = type === 'hole-in-one' ? 4500 : type === 'eagle' ? 3500 : 3000;
       celebrationTimeout.current = setTimeout(() => {
         setCelebrationType(null);
       }, duration);

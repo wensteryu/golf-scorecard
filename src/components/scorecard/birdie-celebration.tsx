@@ -9,29 +9,33 @@ interface BirdieCelebrationProps {
 const CELEBRATION_CONFIG: Record<
   CelebrationType,
   {
-    emoji: string;
     label: string;
     labelColor: string;
-    particles: string[];
+    dragonCount: number;
+    dragonSize: string;
+    particleEmojis: string[];
   }
 > = {
   birdie: {
-    emoji: '🐦',
     label: 'Birdie!',
     labelColor: 'text-emerald-600',
-    particles: ['🐦', '🐦', '🐦', '⭐'],
+    dragonCount: 1,
+    dragonSize: 'h-20 w-20',
+    particleEmojis: ['⭐', '✨', '⭐', '✨'],
   },
   eagle: {
-    emoji: '🦅',
     label: 'Eagle!',
     labelColor: 'text-amber-600',
-    particles: ['🦅', '⭐', '🦅', '⭐', '🦅', '✨'],
+    dragonCount: 2,
+    dragonSize: 'h-24 w-24',
+    particleEmojis: ['⭐', '🔥', '✨', '⭐', '🔥', '✨'],
   },
   'hole-in-one': {
-    emoji: '🎯',
     label: 'HOLE IN ONE!',
     labelColor: 'text-red-600',
-    particles: ['🏆', '🔥', '✨', '🌟', '🎉', '🔥', '✨', '🏆'],
+    dragonCount: 3,
+    dragonSize: 'h-28 w-28',
+    particleEmojis: ['🏆', '🔥', '✨', '🌟', '🎉', '🔥', '✨', '🏆'],
   },
 };
 
@@ -88,23 +92,31 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
         </div>
       )}
 
-      {/* Central emoji */}
+      {/* Central dragon(s) */}
       <div className="relative flex flex-col items-center">
-        <div className="text-7xl animate-emoji-pop">
-          {config.emoji}
+        <div className="flex items-center gap-2 animate-emoji-pop">
+          {Array.from({ length: config.dragonCount }, (_, i) => (
+            <img
+              key={i}
+              src="/logo.png"
+              alt="Dragon"
+              className={`${config.dragonSize} object-contain ${i % 2 === 1 ? '-scale-x-100' : ''}`}
+              style={{ animationDelay: `${i * 0.1}s` }}
+            />
+          ))}
         </div>
 
         {/* Label */}
         <div
-          className={`mt-2 text-2xl font-extrabold animate-label-slide-up ${config.labelColor}`}
+          className={`mt-3 text-2xl font-extrabold animate-label-slide-up ${config.labelColor}`}
           style={{ textShadow: '0 1px 4px rgba(255,255,255,0.8)' }}
         >
           {config.label}
         </div>
 
         {/* Particle burst */}
-        {config.particles.map((particle, i) => {
-          const pos = getBurstPosition(i, config.particles.length);
+        {config.particleEmojis.map((particle, i) => {
+          const pos = getBurstPosition(i, config.particleEmojis.length);
           return (
             <div
               key={i}

@@ -103,8 +103,8 @@ html, body {
 
 @keyframes label-slide-up {
   0%   { transform: translateY(10px); opacity: 0; }
-  20%  { transform: translateY(0); opacity: 1; }
-  75%  { transform: translateY(0); opacity: 1; }
+  10%  { transform: translateY(0); opacity: 1; }
+  85%  { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(-10px); opacity: 0; }
 }
 
@@ -127,7 +127,7 @@ html, body {
 }
 
 .animate-label-slide-up {
-  animation: label-slide-up 1.8s ease-in-out forwards;
+  animation: label-slide-up 2.8s ease-in-out forwards;
 }
 
 .animate-screen-flash {
