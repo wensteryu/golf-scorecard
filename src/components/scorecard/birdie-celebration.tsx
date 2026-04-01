@@ -84,7 +84,7 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
   const dragonSrc = getNextDragon();
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+    <div className="fixed inset-0 pointer-events-none z-50">
       {/* Screen flash for hole-in-one */}
       {type === 'hole-in-one' && (
         <div className="absolute inset-0 bg-yellow-300 animate-screen-flash" />
@@ -99,8 +99,8 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
         </div>
       )}
 
-      {/* Central dragon(s) */}
-      <div className="relative flex flex-col items-center">
+      {/* Dragon — positioned upper right to avoid blocking score */}
+      <div className="absolute top-20 right-4 flex flex-col items-center">
         <div className="animate-emoji-pop">
           <img
             src={dragonSrc}
@@ -111,7 +111,7 @@ export function BirdieCelebration({ type }: BirdieCelebrationProps) {
 
         {/* Label */}
         <div
-          className={`mt-3 text-2xl font-extrabold animate-label-slide-up ${config.labelColor}`}
+          className={`mt-2 text-2xl font-extrabold animate-label-slide-up ${config.labelColor}`}
           style={{ textShadow: '0 1px 4px rgba(255,255,255,0.8)' }}
         >
           {config.label}
