@@ -7,8 +7,6 @@ import { Profile, Scorecard } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { NotificationBell } from '@/components/notifications/notification-bell';
-import { RoleSwitcher } from '@/components/ui/role-switcher';
-import { isAdmin } from '@/lib/admin';
 import { ThemeToggle } from '@/lib/theme';
 
 export default function CoachDashboardPage() {
@@ -217,7 +215,6 @@ export default function CoachDashboardPage() {
           </Button>
         </div>
       </div>
-      {profile && isAdmin(profile.email) && <RoleSwitcher />}
     </div>
   );
 }

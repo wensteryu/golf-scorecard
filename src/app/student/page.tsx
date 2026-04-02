@@ -8,8 +8,6 @@ import { formatScoreToPar } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { NotificationBell } from '@/components/notifications/notification-bell';
-import { RoleSwitcher } from '@/components/ui/role-switcher';
-import { isAdmin } from '@/lib/admin';
 import { ThemeToggle } from '@/lib/theme';
 import Link from 'next/link';
 
@@ -376,7 +374,6 @@ export default function StudentDashboard() {
           </Button>
         </div>
       </div>
-      {profile && isAdmin(profile.email) && <RoleSwitcher />}
     </div>
   );
 }
