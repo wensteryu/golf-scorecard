@@ -6,7 +6,7 @@ export type FairwayResult = 'hit' | 'left' | 'right' | null;
 
 export type PinPosition = 'left' | 'right' | 'short' | 'over' | 'pin_high';
 
-export type ClubUsed = 'LW' | 'SW' | 'GW' | 'PW' | '9i' | '8i' | '7i' | '6i' | '5i' | '4i' | '3i' | '5w' | '3w' | 'D' | null;
+export type ClubUsed = 'LW' | 'SW' | 'GW' | 'PW' | '9i' | '8i' | '7i' | '6i' | '5i' | '4i' | '3i' | '2i' | '5H' | '4H' | '3H' | '7w' | '5w' | '3w' | 'D' | null;
 
 export type FirstPuttResult = 'made' | 'short' | 'over' | 'high_side' | 'low_side' | null;
 
