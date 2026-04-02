@@ -534,6 +534,27 @@ export default function ReviewScorecardPage() {
                   </div>
                 );
               })()}
+              {(() => {
+                const threePuttWithDist = holes.filter(
+                  (h) => h.putts != null && h.putts >= 3 && h.first_putt_distance != null
+                );
+                if (threePuttWithDist.length === 0) return null;
+                return (
+                  <div className="border-t border-golf-gray-100 mt-3 pt-3">
+                    <span className="text-xs text-golf-gray-400 uppercase tracking-wide">3-Putt 1st Putt Distance</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {threePuttWithDist.map((h) => (
+                        <span
+                          key={h.hole_number}
+                          className="inline-flex items-center gap-1 bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded-lg"
+                        >
+                          #{h.hole_number}: {h.first_putt_distance}ft
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               <div className="flex gap-4 mt-3 text-xs text-golf-gray-400">
                 <span>1-Putts: <span className="font-bold text-golf-gray-500">{stats.onePutts}</span></span>
                 <span>3-Putts: <span className="font-bold text-golf-gray-500">{stats.threePutts}</span></span>
