@@ -515,7 +515,7 @@ export default function ReviewScorecardPage() {
               {/* 1st Putts Made with Distance */}
               {(() => {
                 const madeWithDist = holes.filter(
-                  (h) => h.first_putt_result === 'made' && h.first_putt_distance != null
+                  (h) => h.putts === 1 && h.first_putt_distance != null
                 );
                 if (madeWithDist.length === 0) return null;
                 return (
