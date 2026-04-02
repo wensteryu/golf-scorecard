@@ -1,5 +1,5 @@
 // Admin emails that can access both coach and student views
-const ADMIN_EMAILS = ['wenjyu@gmail.com', 'standumdumaya@gmail.com'];
+const ADMIN_EMAILS = ['wenjyu@gmail.com', 'standumdumaya@gmail.com', 'bizacard@gmail.com'];
 
 export function isAdmin(email: string | undefined | null): boolean {
   if (!email) return false;
