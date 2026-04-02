@@ -8,9 +8,10 @@
 
 **Architecture**:
 - `src/app/` — Routes split by role (`/student/*`, `/coach/*`) + auth (`/login`, `/onboarding`, `/auth/callback`)
-- `src/components/ui/` — Reusable: button, card, progress-bar, stepper, toggle-group
-- `src/components/scorecard/` — Domain: hole-input, celebration-card, birdie-celebration (NEW)
-- `src/lib/` — types.ts, calculations.ts, supabase/{client,server,middleware}.ts
+- `src/app/coach/layout.tsx` & `src/app/student/layout.tsx` — Role layouts that render RoleSwitcher for admin users on ALL sub-pages
+- `src/components/ui/` — Reusable: button, card, progress-bar, stepper, toggle-group, role-switcher
+- `src/components/scorecard/` — Domain: hole-input, celebration-card, birdie-celebration
+- `src/lib/` — types.ts, calculations.ts, admin.ts, supabase/{client,server,middleware}.ts
 - `supabase/migrations/` — 5 migrations (001 initial → 005 split GIR fields)
 
 **DB Tables**: `profiles`, `golf_courses`, `course_holes`, `scorecards`, `hole_scores`, `notifications`. All RLS-protected.
@@ -19,67 +20,54 @@
 
 ## 2. Current Status
 
-### This Session (2026-03-31) — UNCOMMITTED CHANGES
+### This Session (2026-04-01) — All committed & pushed
 
-**Added Birdie/Eagle/Hole-in-One emoji celebrations during score entry**
-
-When a student enters a score that is under par, an animated emoji overlay appears instantly. Non-blocking (`pointer-events-none`), auto-dismisses.
-
-| Achievement | Emoji | Duration |
-|---|---|---|
-| Birdie (1 under) | 🐦 burst + "Birdie!" label | 1.8s |
-| Eagle (2+ under) | 🦅 burst + "Eagle!" label | 1.8s |
-| Hole-in-One (score=1) | 🎯 + confetti rain + screen flash + "HOLE IN ONE!" | 3s |
-
-Changed files:
-- `src/app/globals.css` — Added 5 CSS keyframe animations: `emoji-pop`, `emoji-fade-out`, `emoji-burst`, `label-slide-up`, `screen-flash` with utility classes
-- `src/components/scorecard/birdie-celebration.tsx` (NEW) — Presentational overlay component. Config-driven per celebration type. Radial particle burst using CSS custom properties `--burst-x`/`--burst-y`. Reuses `ConfettiPiece` pattern from `celebration-card.tsx` for hole-in-one
-- `src/app/student/round/[id]/page.tsx` — Added `celebrationType` state + `celebrationTimeout` ref. Detection in `handleFieldChange` when `field === 'score'`: compares score vs par, calls `triggerCelebration()`. Only triggers on score changes, not par changes
-
-**Also committed this session** (already pushed):
-- `14b4dcf` — 3-Putts tile to coach review round summary
-- `d659c75` — Scoring by Par and 100 Yards In to coach review page
-
-**Verified**: `npx tsc --noEmit` — zero errors. Dev server runs clean.
-
-**Investigated**: Zoe's Micke Grove round (scorecard `9d6a7b35`) — status is `in_progress`, all 18 hole scores entered but never submitted. Zoe needs to complete the Reflect step, or DB status can be flipped manually.
+**1. Added hybrid, 2i, and 7w club options** (commit `a69941b`)
+- Coach requested 3H/4H/5H hybrids, 2-iron, and 7-wood added to approach shot club dropdown.
+- Updated `ClubUsed` type in `src/lib/types.ts` and `clubOptions` array in `src/components/scorecard/hole-input.tsx`.
+- No DB migration needed — `club_used` is unconstrained text.
 
 ### Previous Sessions — All committed & pushed
 
-- **2026-03-30** (commits `14b4dcf`, `d659c75`): Added 3-Putts tile, Scoring by Par, 100 Yards In to coach review page.
-- **2026-03-22** (commits `18d99f6`, `bf889bc`, `5202920`): Replaced Twilio SMS with Nodemailer Gmail email. Added student email notification on review. Added detailed Fairways/GIR/Putts breakdown tiles to coach review.
-- **2026-03-19** (commits `7d596f6`, `dc4f9a5`): Split GIR into Yes/No + Pin Position. Fixed batched debounced save bug.
+- **2026-04-01 (earlier)**: Fixed RoleSwitcher on sub-pages, added Stan's bizacard email to admin list, fixed 1st Putts Made list, added 3-Putt 1st Putt Distance summary.
+- **2026-03-31**: Birdie/Eagle/Hole-in-One celebrations with dragon images.
+- **2026-03-30**: Added 3-Putts tile, Scoring by Par, 100 Yards In to coach review page.
+- **2026-03-22**: Replaced Twilio with Nodemailer Gmail. Added email notifications.
+- **2026-03-19**: Split GIR into Yes/No + Pin Position. Fixed batched debounced save bug.
 
 ## 3. Key Decisions
 
 | Decision | Rationale |
 |---|---|
-| Trigger celebration only on `field === 'score'` changes, not par changes | Changing par is a correction, not an achievement |
-| `pointer-events-none` overlay, no dismiss button | Non-blocking UX; student can keep tapping +/- during celebration |
-| `requestAnimationFrame` for unmount/remount cycle | Forces CSS animation restart when rapid clicking changes celebration type |
-| Hole-in-one gets confetti + screen flash + 3s duration | Escalated intensity for rarer achievement; reuses existing confetti pattern |
-| Supabase service role key added to `.env.local` | Needed for unauthenticated DB queries from CLI; key is `SUPABASE_SERVICE_ROLE_KEY` |
-| Gmail + Nodemailer for notifications | Toll-free verification blocker (Twilio error 30032); Gmail simpler for small scale |
+| RoleSwitcher in layout.tsx | Ensures toggle on ALL sub-pages |
+| Admin list: `wenjyu@gmail.com`, `standumdumaya@gmail.com`, `bizacard@gmail.com` | Stan logs in with bizacard |
+| 1st Putts Made list filters by `putts === 1` | Matches the 1-Putts count; `first_putt_result` can be 'made' with 2+ putts |
+| 3-Putt distance section uses `putts >= 3` | Catches 3-putts and worse |
+| SG: Putting uses PGA Tour expected-putts benchmark | Standard practice even for amateurs; enables tracking improvement over time |
+| Club options ordered by distance | LW→SW→GW→PW→9i→…→2i→5H→4H→3H→7w→5w→3w→Driver |
 
-## 4. Next Steps
+## 4. Data Notes
 
-1. **Commit and push** — Birdie celebration feature is verified (tsc clean). 3 file changes (1 new, 2 modified).
-2. **Visual verification** — Log in as a student, navigate to a round, adjust score to birdie/eagle to confirm animation renders. Dev server is running on `localhost:3000`.
-3. **Deploy to Vercel** — Push triggers auto-deploy. Verify at `https://golf-scorecard-iota.vercel.app`.
-4. **Zoe's Micke Grove round** — Scorecard `9d6a7b35` is `in_progress` with all 18 scores entered. Either have Zoe submit through the app (Reflect page), or manually update status to `submitted` in Supabase.
-5. **Zoe's stale rounds** — 3 Baylands rounds stuck at `in_progress` (created 2026-03-19). May be test data; confirm with user before cleanup.
-6. **Jaden's data correction** — Fairway "hit" values from before the debounce fix (pre-`dc4f9a5`) are likely missing in DB.
-7. **Optional enhancements** — Coach review page still lacks Approach stats and full Short Game details. Add if Stan requests.
+- **Jaden has two profiles**: `fegsolutions@gmail.com` (`08cf3401`) and `jaywyeth676@gmail.com` (`b51fbb0f`).
+- **Stan has two coach profiles**: `standumdumaya@gmail.com` (`8631965b`) and `bizacard@gmail.com` (`5d510e76`).
+- **Jaden's 3/19 Rancho Solano** (`7d82ac02`): Holes 14/15 have `first_putt_result='made'` but `putts=2`. Hole 8 has `putts=1` but `first_putt_result='short'`.
 
-## 5. Context Notes
+## 5. Next Steps
+
+1. **Implement Strokes Gained** (pending user confirmation) — Add SG: Putting + SG: Tee-to-Green to:
+   - `src/lib/calculations.ts` — PGA expected-putts lookup table + SG calculation functions
+   - `src/app/coach/review/[id]/page.tsx` — Display SG stats on coach review
+   - `src/app/student/round/[id]/summary/page.tsx` — Display SG stats on student summary
+   - Possibly `src/app/student/history/[id]/page.tsx` — Student round history view
+2. **Stan/Jaden duplicate profiles** — Both have two profiles each. May want to consolidate.
+3. **Zoe's Micke Grove round** — Scorecard `9d6a7b35` stuck at `in_progress`.
+4. **Zoe's stale rounds** — 3 Baylands rounds stuck at `in_progress`.
+5. **Jaden's data correction** — Fairway "hit" values pre-debounce fix may be missing.
+
+## 6. Context Notes
 
 - **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app`
-- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local` (anon key + service role key).
-- **Supabase CLI not linked** — migrations must be run manually via SQL Editor.
-- **Admin email**: `wenjyu@gmail.com` — sees RoleSwitcher for dual-role testing. Also the `GMAIL_USER` for sending notifications.
-- **Git user**: `Wen Yu <wenjyu@gmail.com>`, GitHub username `wensteryu`.
-- **Coach = Stan** — he reviews rounds on the coach review page. Feature requests from him should be prioritized.
-- **Zoe Yu** — student (`yuzoe8@gmail.com`, profile `0c258b49`). Also has a coach profile (`wenjyu@gmail.com`, `1d5b5d33`) — likely for testing.
-- **Save mechanism** (`round/[id]/page.tsx` lines 78-161): uses `pendingChanges` ref (object accumulator). Celebration detection is in `handleFieldChange` (lines 180-192). Critical for any future save-related changes.
-- **Celebration component** (`birdie-celebration.tsx`): purely presentational, parent controls via `type` prop + timeout. Uses `getBurstPosition()` with `Math.random()` for particle directions — positions vary on each mount.
-- **Review URL logic** (`notify-coach/route.ts` lines 22-27): uses `NEXT_PUBLIC_VERCEL_URL` in production, falls back to `localhost:3000` in dev.
+- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`.
+- **Git user**: `Wen Yu`, GitHub `wensteryu`. Use `gh auth switch --user wensteryu` if needed.
+- **Coach = Stan** (`bizacard@gmail.com` primary login). Feature requests prioritized.
+- **Zoe Yu** — student (`yuzoe8@gmail.com`, profile `0c258b49`).
