@@ -20,16 +20,19 @@
 
 ## 2. Current Status
 
-### This Session (2026-04-01) — All committed & pushed
+### This Session (2026-04-03) — All committed & pushed
 
-**1. Added hybrid, 2i, and 7w club options** (commit `a69941b`)
-- Coach requested 3H/4H/5H hybrids, 2-iron, and 7-wood added to approach shot club dropdown.
-- Updated `ClubUsed` type in `src/lib/types.ts` and `clubOptions` array in `src/components/scorecard/hole-input.tsx`.
-- No DB migration needed — `club_used` is unconstrained text.
+**1. Captured Zoe's Arccos stats & created dashboard page** (commit `b0f0d2e`)
+- Manually extracted stats from 5 Arccos dashboard tabs (Overall, Driving, Approach, Short Game, Putting) via user screenshots.
+- Created `arccos-stats.md` — structured markdown with all stats, benchmarks (vs 0 HCP), and key insights.
+- Created `/coach/arccos/zoe` page (`src/app/coach/arccos/zoe/page.tsx`) — static dashboard displaying all Arccos strokes gained data for Stan's review.
+- Page sections: Overall SG (+3.9), Scoring by Par, Top 3 Areas to Work On, Driving (+4.5), Approach (-0.5), Short Game (+0.2), Putting (-0.2), Key Strengths, Areas for Improvement.
+- All values color-coded (green=positive SG, red=negative) with 0 HCP benchmarks.
+- Build verified, pushed to Vercel.
 
 ### Previous Sessions — All committed & pushed
 
-- **2026-04-01 (earlier)**: Fixed RoleSwitcher on sub-pages, added Stan's bizacard email to admin list, fixed 1st Putts Made list, added 3-Putt 1st Putt Distance summary.
+- **2026-04-01**: Added hybrid/2i/7w club options, fixed RoleSwitcher on sub-pages, added Stan's bizacard email to admin list, fixed 1st Putts Made list, added 3-Putt 1st Putt Distance summary.
 - **2026-03-31**: Birdie/Eagle/Hole-in-One celebrations with dragon images.
 - **2026-03-30**: Added 3-Putts tile, Scoring by Par, 100 Yards In to coach review page.
 - **2026-03-22**: Replaced Twilio with Nodemailer Gmail. Added email notifications.
@@ -45,29 +48,35 @@
 | 3-Putt distance section uses `putts >= 3` | Catches 3-putts and worse |
 | SG: Putting uses PGA Tour expected-putts benchmark | Standard practice even for amateurs; enables tracking improvement over time |
 | Club options ordered by distance | LW→SW→GW→PW→9i→…→2i→5H→4H→3H→7w→5w→3w→Driver |
+| Arccos stats page is static/hardcoded | No DB needed; data captured from Arccos screenshots; single-purpose review page |
 
 ## 4. Data Notes
 
 - **Jaden has two profiles**: `fegsolutions@gmail.com` (`08cf3401`) and `jaywyeth676@gmail.com` (`b51fbb0f`).
 - **Stan has two coach profiles**: `standumdumaya@gmail.com` (`8631965b`) and `bizacard@gmail.com` (`5d510e76`).
 - **Jaden's 3/19 Rancho Solano** (`7d82ac02`): Holes 14/15 have `first_putt_result='made'` but `putts=2`. Hole 8 has `putts=1` but `first_putt_result='short'`.
+- **Zoe's Arccos stats** (captured 2026-04-03): Benchmark is 0 HCP / 10 Round Avg. Key: SG Total +3.9, Driving +4.5 (71% fairways, 231 yds avg), Approach -0.5 (100-150 yd weakness), Putting -0.2 (0-10ft putts weakness).
 
 ## 5. Next Steps
 
-1. **Implement Strokes Gained** (pending user confirmation) — Add SG: Putting + SG: Tee-to-Green to:
+1. **Stan's feedback on Arccos stats page** — May want layout changes, additional data, or different organization after reviewing `/coach/arccos/zoe`.
+2. **Implement Strokes Gained** (pending user confirmation) — Add SG: Putting + SG: Tee-to-Green to:
    - `src/lib/calculations.ts` — PGA expected-putts lookup table + SG calculation functions
    - `src/app/coach/review/[id]/page.tsx` — Display SG stats on coach review
    - `src/app/student/round/[id]/summary/page.tsx` — Display SG stats on student summary
-   - Possibly `src/app/student/history/[id]/page.tsx` — Student round history view
-2. **Stan/Jaden duplicate profiles** — Both have two profiles each. May want to consolidate.
-3. **Zoe's Micke Grove round** — Scorecard `9d6a7b35` stuck at `in_progress`.
-4. **Zoe's stale rounds** — 3 Baylands rounds stuck at `in_progress`.
-5. **Jaden's data correction** — Fairway "hit" values pre-debounce fix may be missing.
+3. **Stan/Jaden duplicate profiles** — Both have two profiles each. May want to consolidate.
+4. **Zoe's Micke Grove round** — Scorecard `9d6a7b35` stuck at `in_progress`.
+5. **Zoe's stale rounds** — 3 Baylands rounds stuck at `in_progress`.
+6. **Jaden's data correction** — Fairway "hit" values pre-debounce fix may be missing.
 
 ## 6. Context Notes
 
 - **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app`
+- **Arccos stats page**: `https://golf-scorecard-iota.vercel.app/coach/arccos/zoe`
 - **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`.
 - **Git user**: `Wen Yu`, GitHub `wensteryu`. Use `gh auth switch --user wensteryu` if needed.
 - **Coach = Stan** (`bizacard@gmail.com` primary login). Feature requests prioritized.
 - **Zoe Yu** — student (`yuzoe8@gmail.com`, profile `0c258b49`).
+
+---
+Review the Next Steps section above and use it as your initial work queue.
