@@ -54,7 +54,11 @@ Vercel Deployment Protection is enabled on production and intercepts requests at
 
 **Impact:** new students CANNOT sign up via a shared link from the coach until this is disabled. Parent emails no longer depend on this (content is self-contained post-embed), but student/coach onboarding still does.
 
-**Fix (30 sec, reversible):** Vercel dashboard → `golf-scorecard-iota` project → Settings → Deployment Protection → Production: Disabled. Leave preview deploys however you want. Safe because: Supabase middleware + RLS already gate `/student/*` and `/coach/*`; Vercel's layer is redundant and designed for staging, not prod auth. Sanity check after flipping: open the production URL in incognito — should land on the golf app login, not vercel.com.
+**Fix (30 sec, reversible):** Vercel dashboard → project → Settings → Deployment Protection → Vercel Authentication section → click the blue "Enabled for" toggle to OFF → Save. Do NOT change the dropdown mode or upgrade to Pro — just disable the whole feature.
+
+**Important nuance discovered this session:** "Standard Protection" only exempts **production Custom Domains** (e.g. `golf.elitegolfrealm.com`). The Vercel-assigned `.vercel.app` subdomain is NOT considered a custom domain, so Standard Protection still blocks it. Since we don't have a custom domain, changing the dropdown mode does nothing useful — the toggle must be turned fully off. Upgrading to Pro ($150/mo) is also overkill; Hobby plan allows toggling off entirely.
+
+Safe because: Supabase middleware + RLS already gate `/student/*` and `/coach/*`; Vercel's layer is redundant and designed for staging, not prod auth. Sanity check after flipping: open the production URL in incognito — should land on the golf app login, not vercel.com.
 
 ### Previous Sessions — All committed & pushed
 
