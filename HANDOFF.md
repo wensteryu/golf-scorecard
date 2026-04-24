@@ -11,7 +11,7 @@
 - `src/app/coach/layout.tsx` & `src/app/student/layout.tsx` — Role layouts that render RoleSwitcher for admin users on ALL sub-pages
 - `src/components/ui/` — Reusable: button, card, progress-bar, stepper, toggle-group, role-switcher
 - `src/components/scorecard/` — Domain: hole-input, celebration-card, birdie-celebration
-- `src/lib/` — types.ts, calculations.ts, admin.ts, supabase/{client,server,middleware}.ts
+- `src/lib/` — types.ts, calculations.ts, admin.ts, supabase/{client,server,middleware}.ts, **emails/parent-scorecard.ts** (shared email renderer)
 - `supabase/migrations/` — 7 migrations (001 initial → 007 parent contact fields)
 
 **DB Tables**: `profiles` (now with `parent_email`, `parent_first_name`), `golf_courses`, `course_holes`, `scorecards`, `hole_scores`, `notifications`. All RLS-protected.
@@ -22,33 +22,32 @@
 
 ### This Session (2026-04-23) — All committed & pushed
 
-**Parent email notifications on scorecard submit and coach review** (commits `1157de5`, `b313d89`, `dba267f`)
-- **Migration 007** (`supabase/migrations/007_add_parent_contact.sql`) — adds nullable `parent_email text` and `parent_first_name text` to `profiles`. **APPLIED by user in Supabase dashboard.**
-- **Type update** — `Profile` interface in `src/lib/types.ts` gains both fields.
-- **New student settings page** at `/student/settings` (`src/app/student/settings/page.tsx`) — student can edit their full name and add/edit parent first name + parent email. Validates email format; requires parent first name when email is set (used for "Hi [First]" greeting).
-- **Settings link** added to `/student` dashboard footer (above Sign Out).
-- **Two new API routes** using the existing Gmail/Nodemailer pattern:
-  - `/api/notify-parent-submit` — fires when student submits a round ("{Student} just submitted a round for coach review").
-  - `/api/notify-parent-review` — fires when coach marks reviewed ("Coach has reviewed {Student}'s round").
-- **Wiring** — both routes fire in parallel with the existing coach/student emails, guarded by a truthy `parent_email` check. Fire-and-forget (`.catch(() => {})`).
-- **Call sites**:
-  - `src/app/student/round/[id]/summary/page.tsx` — loads `parent_email` + `parent_first_name` via the student profile fetch; fires `notify-parent-submit` after `notify-coach`.
-  - `src/app/coach/review/[id]/page.tsx` — already joins `student:profiles!student_id(*)` so parent fields come through automatically; fires `notify-parent-review` after `notify-student`.
-- Also added `*.swp`, `*.swo`, `*~` to `.gitignore`.
-- `npm run build` passed with all 24 routes.
-- Dev server spot-check: `/student/settings` correctly redirects unauthenticated to `/login`; compiled cleanly.
+**Parent email notifications** — two phases, both shipped.
 
-### BLOCKER DISCOVERED DURING E2E TEST (pending decision from user)
+**Phase 1: Plumbing** (commits `1157de5`, `b313d89`, `dba267f`)
+- Migration 007 adds `parent_email`, `parent_first_name` to `profiles` (applied via dashboard).
+- Student settings page at `/student/settings` lets students enter parent contact.
+- Two API routes: `/api/notify-parent-submit`, `/api/notify-parent-review`.
+- Wired into `/student/round/[id]/summary` (after `notify-coach`) and `/coach/review/[id]` (after `notify-student`), guarded by truthy `parent_email`. All fire-and-forget.
+- Added `*.swp`/`*.swo`/`*~` to `.gitignore`.
 
-User tested the flow and the parent received the submit email, but **clicking "View Round" hit a Vercel "Attempted Vercel Sign-in" wall** — the Vercel deployment at `golf-scorecard-iota.vercel.app` has Deployment Protection enabled, so any unauthenticated request is intercepted by Vercel's edge auth and redirected to `vercel.com/login` before the Next.js middleware even runs. Parents don't have Vercel accounts, so they hit a dead end.
+**Phase 2: Embed full scorecard in parent emails** (commit `9c6bc24`)
+- **Why:** E2E test revealed Vercel Deployment Protection intercepts email "View Round" links before the Next.js app runs, redirecting to `vercel.com/login`. Parents don't have Vercel accounts, so links were dead. Also, parents don't have Supabase accounts — even without the Vercel gate, the app would redirect them to login. Decision: the email IS the product for parents; embed the full round content inline, no links.
+- **Shared renderer** at `src/lib/emails/parent-scorecard.ts` — `buildParentScorecardEmail(input)` returns `{ subject, html }`. Handles both `event: 'submit' | 'review'`. Pure function; takes parent contact, student/course/date, hole scores, stats, reflections, and (review only) coachFeedback.
+- **Submit email**: green header "New Round Submitted" → hero card (course/date/score) → scorecard (front/back 9 with color-coded score cells — green birdie, gold eagle, amber bogey, darker amber double, red triple+) → key stats (fairways, GIR, putts, 1-putts, 3-putts) → student reflections (mentality, what transpired, how to respond).
+- **Review email**: everything above + Coach feedback section (overall in green-accented blockquote + per-hole notes table, showing only holes with notes).
+- **Route simplification**: Both API routes became ~50 lines — parse payload, call renderer, send via Nodemailer.
+- **Call-site changes**: `/student/round/[id]/summary` and `/coach/review/[id]` now send expanded payloads with `holeScores`, `stats`, `reflections`, and (review) `coachFeedback` including in-flight `holeNotes` from component state.
+- **Verified**: `npm run build` passes; rendered both templates with sample data (83/+11 round, birdie + bogeys, 3 coach-noted holes) and screenshotted via headless Chrome — clean and legible.
 
-**Two layers of the problem:**
-1. **Vercel layer**: Deployment Protection blocks parents from reaching the app at all. Fix: disable Deployment Protection in Vercel dashboard (Settings → Deployment Protection → Production: Disabled). Vercel's protection is preview-deploy ergonomics, not production security — Supabase + middleware already gates everything.
-2. **App layer**: Even after (1), the middleware redirects unauth users to Supabase login. Parents don't have Supabase accounts either. Two options presented to user:
-   - **Option 1**: Loosen RLS on `scorecards` + `hole_scores` to allow anonymous SELECT by ID, plus exempt `/student/round/[id]/summary` from middleware auth. Relies on UUIDs being unguessable.
-   - **Option 2 (recommended)**: Embed the full scorecard content inside the parent emails (totals, score-to-par, hole-by-hole, coach feedback on the review email). No link, no sign-in, simpler UX. No RLS loosening.
+### Outstanding test step (blocked on external action)
 
-**User has not yet picked between Option 1 and Option 2.** Ticket is paused on this choice.
+Parent notifications are implemented and pushed but NOT yet end-to-end verified in production. To verify:
+1. (Optional) Disable Vercel Deployment Protection — still relevant for student/coach fresh logins, not for parent emails anymore since those are self-contained.
+2. In `/student/settings` as Zoe, set parent first name + parent email to your own address.
+3. Submit a test round → parent inbox should receive email with full scorecard inline.
+4. Mark reviewed as Stan → parent inbox should receive email with scorecard + overall feedback + per-hole notes.
+5. Negative case: clear parent email, submit another round, confirm only coach email sends (no error).
 
 ### Previous Sessions — All committed & pushed
 
@@ -63,20 +62,25 @@ User tested the flow and the parent received the submit email, but **clicking "V
 
 | Decision | Rationale |
 |---|---|
-| One parent per student (not a join table) | Option A picked over multi-parent; single columns on `profiles` are simpler and match current reality. Cheap to migrate later. |
+| One parent per student (not a join table) | Single columns on `profiles` are simpler and match current reality. Cheap to migrate later. |
 | Parent contact on `profiles`, not new table | Keeps schema flat; one row per student already exists. |
-| Student captures parent contact themselves via `/student/settings` | No coach-mediated flow, no admin screen. Student owns their profile row already via RLS. |
-| Two separate API routes for parent emails (not extending `notify-coach`/`notify-student`) | Parent templates read differently; separation keeps existing routes untouched (zero regression risk) and lets parent wording evolve independently. |
-| Parent email sends are fire-and-forget | Matches existing coach/student email pattern; a send failure never blocks submit or review. |
-| No unsubscribe link in parent emails | Per user: parents want to see all their kid's submissions; small private user base. |
-| Parent first name required if parent email set | Email opens with "Hi {First}" personalization. |
-| RoleSwitcher in layout.tsx | Ensures toggle on ALL sub-pages |
-| Admin list: `wenjyu@gmail.com`, `standumdumaya@gmail.com`, `bizacard@gmail.com` | Stan logs in with bizacard |
-| 1st Putts Made list filters by `putts === 1` | Matches the 1-Putts count; `first_putt_result` can be 'made' with 2+ putts |
-| 3-Putt distance section uses `putts >= 3` | Catches 3-putts and worse |
-| SG: Putting uses PGA Tour expected-putts benchmark | Standard practice even for amateurs; enables tracking improvement over time |
-| Club options ordered by distance | LW→SW→GW→PW→9i→…→2i→5H→4H→3H→7w→5w→3w→Driver |
-| Arccos stats page is static/hardcoded | No DB needed; data captured from Arccos screenshots; single-purpose review page |
+| Student captures parent contact via `/student/settings` | Student owns their profile row via RLS; no coach-mediated flow. |
+| Parent emails are self-contained (no app links) | Parents have no Supabase/Vercel account. Dead link → bad UX. Embedding full content sidesteps auth entirely and is more private (no shared state). |
+| Shared email renderer module, not duplicated templates | Two routes share ~90% of the layout. Single source of truth. |
+| Two separate API routes (submit vs. review) | Keeps existing coach/student routes untouched; parent wording evolves independently. |
+| Inline-styled table-based email layout | Maximum compatibility across Gmail/Outlook/Apple Mail; no external CSS, no flexbox. |
+| Score cells color-coded per birdie/par/bogey/worse | At-a-glance legibility for parents who don't know golf notation. |
+| Coach per-hole notes shown only for noted holes | Don't pad the email with 15+ empty rows; only surface what the coach actually wrote. |
+| Fire-and-forget email sends | Matches existing pattern; failure never blocks submit/review. |
+| Parent first name required if parent email set | Email opens with "Hi {First}" — empty first name reads awkwardly. |
+| No unsubscribe link | Per user: parents want to see every submission; small private user base. |
+| RoleSwitcher in layout.tsx | Ensures toggle on ALL sub-pages. |
+| Admin list: `wenjyu@gmail.com`, `standumdumaya@gmail.com`, `bizacard@gmail.com` | Stan logs in with bizacard. |
+| 1st Putts Made list filters by `putts === 1` | Matches the 1-Putts count. |
+| 3-Putt distance section uses `putts >= 3` | Catches 3-putts and worse. |
+| SG: Putting uses PGA Tour expected-putts benchmark | Standard practice; enables tracking improvement. |
+| Club options ordered by distance | LW→SW→GW→PW→9i→…→2i→5H→4H→3H→7w→5w→3w→Driver. |
+| Arccos stats page is static/hardcoded | No DB needed; single-purpose review page. |
 
 ## 4. Data Notes
 
@@ -87,27 +91,26 @@ User tested the flow and the parent received the submit email, but **clicking "V
 
 ## 5. Next Steps
 
-1. **Resolve parent-can't-view-round blocker** — waiting on user choice between:
-   - (a) Disable Vercel Deployment Protection + loosen RLS + exempt summary route from middleware auth.
-   - (b) Embed full round content in the parent emails (recommended). No link dependency. Requires expanding `notify-parent-submit` and `notify-parent-review` templates to render scores/stats/feedback inline.
-   - Whichever route is picked, also need to disable Vercel Deployment Protection at minimum (`vercel.com` → project → Settings → Deployment Protection → Production: Disabled), since it was blocking parents at the edge.
-2. **End-to-end test parent notifications** (gated on #1) — submit round → confirm parent gets useful email (either link works or content is inline); mark reviewed → confirm second parent email.
+1. **End-to-end test parent email flow** — see steps in section 2 above. Verify inline scorecard renders in Gmail (web + mobile), and that cleared parent email path produces no errors.
+2. **(Optional) Disable Vercel Deployment Protection** — Settings → Deployment Protection → Production: Disabled. Still relevant for student/coach login if any fresh user tries to join, though parent emails no longer depend on it.
 3. **Stan's feedback on Arccos stats page** — may want layout changes or different organization after reviewing `/coach/arccos/zoe`.
-4. **Implement Strokes Gained** (pending user confirmation) — Add SG: Putting + SG: Tee-to-Green to:
+4. **Implement Strokes Gained** (pending user confirmation) — add SG: Putting + SG: Tee-to-Green to:
    - `src/lib/calculations.ts` — PGA expected-putts lookup table + SG calculation functions
-   - `src/app/coach/review/[id]/page.tsx` — Display SG stats on coach review
-   - `src/app/student/round/[id]/summary/page.tsx` — Display SG stats on student summary
-5. **Stan/Jaden duplicate profiles** — Both have two profiles each. May want to consolidate.
-6. **Zoe's Micke Grove round** — Scorecard `9d6a7b35` stuck at `in_progress`.
+   - `src/app/coach/review/[id]/page.tsx` — display SG stats on coach review
+   - `src/app/student/round/[id]/summary/page.tsx` — display SG stats on student summary
+5. **Stan/Jaden duplicate profiles** — both have two profiles each. May want to consolidate.
+6. **Zoe's Micke Grove round** — scorecard `9d6a7b35` stuck at `in_progress`.
 7. **Zoe's stale rounds** — 3 Baylands rounds stuck at `in_progress`.
-8. **Jaden's data correction** — Fairway "hit" values pre-debounce fix may be missing.
+8. **Jaden's data correction** — fairway "hit" values pre-debounce fix may be missing.
 
 ## 6. Context Notes
 
-- **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app` — has Deployment Protection enabled (blocking parents; see blocker above).
+- **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app` — has Deployment Protection enabled (blocks fresh student/coach logins; parent emails no longer depend on the app).
 - **Arccos stats page**: `https://golf-scorecard-iota.vercel.app/coach/arccos/zoe`
-- **Student settings page**: `https://golf-scorecard-iota.vercel.app/student/settings` (new this session)
-- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`. Migrations applied manually via the dashboard SQL editor (no local Supabase CLI).
+- **Student settings page**: `https://golf-scorecard-iota.vercel.app/student/settings`
+- **Parent email renderer**: `src/lib/emails/parent-scorecard.ts`. Pure function; easy to iterate on the HTML without touching the API routes.
+- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`. Migrations applied manually via dashboard SQL editor (no local Supabase CLI).
+- **Gmail credentials**: `GMAIL_USER` and `GMAIL_APP_PASSWORD` in `.env.local` (Vercel env too). Used by all four notify-* routes.
 - **Git user**: `Wen Yu`, GitHub `wensteryu`. Use `gh auth switch --user wensteryu` if a push 403s (wrong account often active by default).
 - **Coach = Stan** (`bizacard@gmail.com` primary login). Feature requests prioritized.
 - **Zoe Yu** — student (`yuzoe8@gmail.com`, profile `0c258b49`).
