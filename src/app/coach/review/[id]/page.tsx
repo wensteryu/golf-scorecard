@@ -141,6 +141,24 @@ export default function ReviewScorecardPage() {
         }).catch(() => {});
       }
 
+      // Fire-and-forget email notification to parent (if configured)
+      if (scorecard.student?.parent_email) {
+        fetch('/api/notify-parent-review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            parentEmail: scorecard.student.parent_email,
+            parentFirstName: scorecard.student.parent_first_name,
+            studentName: scorecard.student.full_name,
+            courseName: scorecard.course?.name,
+            roundDate: scorecard.round_date,
+            totalScore: stats.totalScore,
+            scoreToPar: stats.scoreToPar,
+            scorecardId: scorecard.id,
+          }),
+        }).catch(() => {});
+      }
+
       setSuccessMsg('Scorecard marked as reviewed!');
       setTimeout(() => router.push('/coach'), 1500);
     } catch (err) {

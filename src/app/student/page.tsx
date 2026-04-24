@@ -364,6 +364,11 @@ export default function StudentDashboard() {
         {/* Settings */}
         <div className="pt-4 pb-8 flex flex-col items-center gap-2">
           <ThemeToggle />
+          <Link href="/student/settings" className="w-full">
+            <Button variant="ghost" size="sm" className="w-full">
+              Settings
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="sm"
