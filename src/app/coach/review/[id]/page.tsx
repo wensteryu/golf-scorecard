@@ -141,8 +141,16 @@ export default function ReviewScorecardPage() {
         }).catch(() => {});
       }
 
-      // Fire-and-forget email notification to parent (if configured)
+      // Fire-and-forget email notification to parent (if configured).
+      // Expanded payload renders the full scorecard + coach feedback inline —
+      // parents don't have app accounts, so the email is self-contained.
       if (scorecard.student?.parent_email) {
+        const holeScoresForEmail = (scorecard.hole_scores ?? []).map((hs) => ({
+          hole_number: hs.hole_number,
+          par: hs.par,
+          score: hs.score,
+          coach_note: holeNotes[hs.hole_number] ?? hs.coach_note ?? '',
+        }));
         fetch('/api/notify-parent-review', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -152,9 +160,29 @@ export default function ReviewScorecardPage() {
             studentName: scorecard.student.full_name,
             courseName: scorecard.course?.name,
             roundDate: scorecard.round_date,
-            totalScore: stats.totalScore,
-            scoreToPar: stats.scoreToPar,
-            scorecardId: scorecard.id,
+            holeScores: holeScoresForEmail,
+            stats: {
+              totalScore: stats.totalScore,
+              totalPar: stats.totalPar,
+              scoreToPar: stats.scoreToPar,
+              front9Score: stats.front9Score,
+              front9Par: stats.front9Par,
+              back9Score: stats.back9Score,
+              back9Par: stats.back9Par,
+              fairwaysHit: stats.fairwaysHit,
+              fairwaysTotal: stats.fairwaysTotal,
+              girHit: stats.girHit,
+              girTotal: stats.girTotal,
+              totalPutts: stats.totalPutts,
+              onePutts: stats.onePutts,
+              threePutts: stats.threePutts,
+            },
+            reflections: {
+              mentalityRating: scorecard.mentality_rating,
+              whatTranspired: scorecard.what_transpired,
+              howToRespond: scorecard.how_to_respond,
+            },
+            coachFeedback: overallFeedback,
           }),
         }).catch(() => {});
       }

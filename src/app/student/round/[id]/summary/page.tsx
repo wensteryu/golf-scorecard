@@ -188,7 +188,9 @@ export default function SummaryPage() {
         }),
       }).catch(() => {});
 
-      // Fire-and-forget email notification to parent (if configured)
+      // Fire-and-forget email notification to parent (if configured).
+      // Payload is expanded so the email can render the full scorecard inline —
+      // parents don't have app accounts, so the email is the whole product.
       if (parentEmail) {
         fetch('/api/notify-parent-submit', {
           method: 'POST',
@@ -199,9 +201,32 @@ export default function SummaryPage() {
             studentName,
             courseName,
             roundDate: scorecard.round_date,
-            totalScore: scores.totalScore,
-            scoreToPar: scores.scoreToPar,
-            scorecardId,
+            holeScores: holeScores.map((h) => ({
+              hole_number: h.hole_number,
+              par: h.par,
+              score: h.score,
+            })),
+            stats: {
+              totalScore: scores.totalScore,
+              totalPar: scores.totalPar,
+              scoreToPar: scores.scoreToPar,
+              front9Score: scores.front9Score,
+              front9Par: scores.front9Par,
+              back9Score: scores.back9Score,
+              back9Par: scores.back9Par,
+              fairwaysHit: scores.fairwaysHit,
+              fairwaysTotal: scores.fairwaysTotal,
+              girHit: scores.girHit,
+              girTotal: scores.girTotal,
+              totalPutts: scores.totalPutts,
+              onePutts: scores.onePutts,
+              threePutts: scores.threePutts,
+            },
+            reflections: {
+              mentalityRating: scorecard.mentality_rating,
+              whatTranspired: scorecard.what_transpired,
+              howToRespond: scorecard.how_to_respond,
+            },
           }),
         }).catch(() => {});
       }
