@@ -12,26 +12,35 @@
 - `src/components/ui/` — Reusable: button, card, progress-bar, stepper, toggle-group, role-switcher
 - `src/components/scorecard/` — Domain: hole-input, celebration-card, birdie-celebration
 - `src/lib/` — types.ts, calculations.ts, admin.ts, supabase/{client,server,middleware}.ts
-- `supabase/migrations/` — 5 migrations (001 initial → 005 split GIR fields)
+- `supabase/migrations/` — 7 migrations (001 initial → 007 parent contact fields)
 
-**DB Tables**: `profiles`, `golf_courses`, `course_holes`, `scorecards`, `hole_scores`, `notifications`. All RLS-protected.
+**DB Tables**: `profiles` (now with `parent_email`, `parent_first_name`), `golf_courses`, `course_holes`, `scorecards`, `hole_scores`, `notifications`. All RLS-protected.
 
 **Repo**: `origin` → `https://github.com/wensteryu/golf-scorecard.git` (main branch)
 
 ## 2. Current Status
 
-### This Session (2026-04-03) — All committed & pushed
+### This Session (2026-04-23) — All committed & pushed
 
-**1. Captured Zoe's Arccos stats & created dashboard page** (commit `b0f0d2e`)
-- Manually extracted stats from 5 Arccos dashboard tabs (Overall, Driving, Approach, Short Game, Putting) via user screenshots.
-- Created `arccos-stats.md` — structured markdown with all stats, benchmarks (vs 0 HCP), and key insights.
-- Created `/coach/arccos/zoe` page (`src/app/coach/arccos/zoe/page.tsx`) — static dashboard displaying all Arccos strokes gained data for Stan's review.
-- Page sections: Overall SG (+3.9), Scoring by Par, Top 3 Areas to Work On, Driving (+4.5), Approach (-0.5), Short Game (+0.2), Putting (-0.2), Key Strengths, Areas for Improvement.
-- All values color-coded (green=positive SG, red=negative) with 0 HCP benchmarks.
-- Build verified, pushed to Vercel.
+**Parent email notifications on scorecard submit and coach review** (commit `1157de5`)
+- **Migration 007** (`supabase/migrations/007_add_parent_contact.sql`) — adds nullable `parent_email text` and `parent_first_name text` to `profiles`.
+- **Type update** — `Profile` interface in `src/lib/types.ts` gains both fields.
+- **New student settings page** at `/student/settings` (`src/app/student/settings/page.tsx`) — student can edit their full name and add/edit parent first name + parent email. Validates email format; requires parent first name when email is set (used for "Hi [First]" greeting).
+- **Settings link** added to `/student` dashboard footer (above Sign Out).
+- **Two new API routes** using the existing Gmail/Nodemailer pattern:
+  - `/api/notify-parent-submit` — fires when student submits a round ("{Student} just submitted a round for coach review").
+  - `/api/notify-parent-review` — fires when coach marks reviewed ("Coach has reviewed {Student}'s round").
+- **Wiring** — both routes fire in parallel with the existing coach/student emails, guarded by a truthy `parent_email` check. Fire-and-forget (`.catch(() => {})`), same as the existing calls, so a send failure never blocks the UI.
+- **Call sites**:
+  - `src/app/student/round/[id]/summary/page.tsx` — loads `parent_email` + `parent_first_name` via the student profile fetch; fires `notify-parent-submit` after `notify-coach`.
+  - `src/app/coach/review/[id]/page.tsx` — already joins `student:profiles!student_id(*)` so parent fields come through automatically; fires `notify-parent-review` after `notify-student`.
+- `npm run build` passes with all 24 routes (including the two new API routes and `/student/settings`).
+
+**ACTION REQUIRED BEFORE TESTING:** Apply migration 007 in the Supabase SQL editor (`flraumgjaubkauconyoq.supabase.co`) — no local Supabase CLI is wired up, so migrations are applied manually. The app will run without it, but the settings page save and the parent fetch queries will fail on the new columns until the migration runs.
 
 ### Previous Sessions — All committed & pushed
 
+- **2026-04-03**: Captured Zoe's Arccos stats; created `/coach/arccos/zoe` static dashboard.
 - **2026-04-01**: Added hybrid/2i/7w club options, fixed RoleSwitcher on sub-pages, added Stan's bizacard email to admin list, fixed 1st Putts Made list, added 3-Putt 1st Putt Distance summary.
 - **2026-03-31**: Birdie/Eagle/Hole-in-One celebrations with dragon images.
 - **2026-03-30**: Added 3-Putts tile, Scoring by Par, 100 Yards In to coach review page.
@@ -42,6 +51,13 @@
 
 | Decision | Rationale |
 |---|---|
+| One parent per student (not a join table) | Option A picked over multi-parent; single columns on `profiles` are simpler and match current reality. Cheap to migrate later if needed. |
+| Parent contact on `profiles`, not new table | Keeps schema flat; one row per student already exists. |
+| Student captures parent contact themselves via `/student/settings` | No coach-mediated flow, no admin screen. Student owns their profile row already via RLS. |
+| Two separate API routes for parent emails (not extending `notify-coach`/`notify-student`) | Parent templates read differently ("your child submitted" vs. "a student submitted for review"). Separation keeps existing routes untouched — zero regression risk — and lets parent wording evolve independently. |
+| Parent email sends are fire-and-forget | Matches existing coach/student email pattern; a send failure never blocks submit or review. |
+| No unsubscribe link in parent emails | Per user: parents want to see all their kid's submissions; small private user base. |
+| Parent first name required if parent email set | Email opens with "Hi {First}" personalization; empty first name would read awkwardly. |
 | RoleSwitcher in layout.tsx | Ensures toggle on ALL sub-pages |
 | Admin list: `wenjyu@gmail.com`, `standumdumaya@gmail.com`, `bizacard@gmail.com` | Stan logs in with bizacard |
 | 1st Putts Made list filters by `putts === 1` | Matches the 1-Putts count; `first_putt_result` can be 'made' with 2+ putts |
@@ -59,22 +75,25 @@
 
 ## 5. Next Steps
 
-1. **Stan's feedback on Arccos stats page** — May want layout changes, additional data, or different organization after reviewing `/coach/arccos/zoe`.
-2. **Implement Strokes Gained** (pending user confirmation) — Add SG: Putting + SG: Tee-to-Green to:
+1. **Apply migration 007 in Supabase** — paste `supabase/migrations/007_add_parent_contact.sql` into the SQL editor. Must happen before the settings page save or parent notifications will work.
+2. **End-to-end test parent notifications** — after migration: open `/student/settings` as Zoe, add a parent first name + parent email (use your own address first), submit a test round, confirm parent + coach inboxes receive the submit emails; mark reviewed, confirm parent + student inboxes receive the review emails; clear parent_email on another student profile and verify no error / only existing emails send.
+3. **Stan's feedback on Arccos stats page** — may want layout changes, additional data, or different organization after reviewing `/coach/arccos/zoe`.
+4. **Implement Strokes Gained** (pending user confirmation) — Add SG: Putting + SG: Tee-to-Green to:
    - `src/lib/calculations.ts` — PGA expected-putts lookup table + SG calculation functions
    - `src/app/coach/review/[id]/page.tsx` — Display SG stats on coach review
    - `src/app/student/round/[id]/summary/page.tsx` — Display SG stats on student summary
-3. **Stan/Jaden duplicate profiles** — Both have two profiles each. May want to consolidate.
-4. **Zoe's Micke Grove round** — Scorecard `9d6a7b35` stuck at `in_progress`.
-5. **Zoe's stale rounds** — 3 Baylands rounds stuck at `in_progress`.
-6. **Jaden's data correction** — Fairway "hit" values pre-debounce fix may be missing.
+5. **Stan/Jaden duplicate profiles** — Both have two profiles each. May want to consolidate.
+6. **Zoe's Micke Grove round** — Scorecard `9d6a7b35` stuck at `in_progress`.
+7. **Zoe's stale rounds** — 3 Baylands rounds stuck at `in_progress`.
+8. **Jaden's data correction** — Fairway "hit" values pre-debounce fix may be missing.
 
 ## 6. Context Notes
 
 - **Deployed to Vercel**: `https://golf-scorecard-iota.vercel.app`
 - **Arccos stats page**: `https://golf-scorecard-iota.vercel.app/coach/arccos/zoe`
-- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`.
-- **Git user**: `Wen Yu`, GitHub `wensteryu`. Use `gh auth switch --user wensteryu` if needed.
+- **Student settings page**: `https://golf-scorecard-iota.vercel.app/student/settings` (new this session)
+- **Supabase project**: `flraumgjaubkauconyoq.supabase.co`. Credentials in `.env.local`. Migrations applied manually via the dashboard SQL editor (no local Supabase CLI).
+- **Git user**: `Wen Yu`, GitHub `wensteryu`. Use `gh auth switch --user wensteryu` if a push 403s (the wrong account is often active by default).
 - **Coach = Stan** (`bizacard@gmail.com` primary login). Feature requests prioritized.
 - **Zoe Yu** — student (`yuzoe8@gmail.com`, profile `0c258b49`).
 
