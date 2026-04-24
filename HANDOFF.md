@@ -40,14 +40,21 @@
 - **Call-site changes**: `/student/round/[id]/summary` and `/coach/review/[id]` now send expanded payloads with `holeScores`, `stats`, `reflections`, and (review) `coachFeedback` including in-flight `holeNotes` from component state.
 - **Verified**: `npm run build` passes; rendered both templates with sample data (83/+11 round, birdie + bogeys, 3 coach-noted holes) and screenshotted via headless Chrome — clean and legible.
 
-### Outstanding test step (blocked on external action)
+### Outstanding test step
 
 Parent notifications are implemented and pushed but NOT yet end-to-end verified in production. To verify:
-1. (Optional) Disable Vercel Deployment Protection — still relevant for student/coach fresh logins, not for parent emails anymore since those are self-contained.
-2. In `/student/settings` as Zoe, set parent first name + parent email to your own address.
-3. Submit a test round → parent inbox should receive email with full scorecard inline.
-4. Mark reviewed as Stan → parent inbox should receive email with scorecard + overall feedback + per-hole notes.
-5. Negative case: clear parent email, submit another round, confirm only coach email sends (no error).
+1. In `/student/settings` as Zoe, set parent first name + parent email to your own address.
+2. Submit a test round → parent inbox should receive email with full scorecard inline.
+3. Mark reviewed as Stan → parent inbox should receive email with scorecard + overall feedback + per-hole notes.
+4. Negative case: clear parent email, submit another round, confirm only coach email sends (no error).
+
+### Separate blocker: Vercel Deployment Protection breaks new-user signup
+
+Vercel Deployment Protection is enabled on production and intercepts requests at Vercel's edge *before* Next.js sees them. Any new user (a new student Stan shares a link with, a new coach, or a parent clicking an email link from the pre-embed phase) is redirected to `vercel.com/login`, not the app's Supabase magic-link login. Evidence: parent test hit "Attempted Vercel Sign-in" email from Vercel. Existing users (Zoe, Jaden, Stan) aren't affected because they already have session cookies.
+
+**Impact:** new students CANNOT sign up via a shared link from the coach until this is disabled. Parent emails no longer depend on this (content is self-contained post-embed), but student/coach onboarding still does.
+
+**Fix (30 sec, reversible):** Vercel dashboard → `golf-scorecard-iota` project → Settings → Deployment Protection → Production: Disabled. Leave preview deploys however you want. Safe because: Supabase middleware + RLS already gate `/student/*` and `/coach/*`; Vercel's layer is redundant and designed for staging, not prod auth. Sanity check after flipping: open the production URL in incognito — should land on the golf app login, not vercel.com.
 
 ### Previous Sessions — All committed & pushed
 
@@ -91,8 +98,8 @@ Parent notifications are implemented and pushed but NOT yet end-to-end verified 
 
 ## 5. Next Steps
 
-1. **End-to-end test parent email flow** — see steps in section 2 above. Verify inline scorecard renders in Gmail (web + mobile), and that cleared parent email path produces no errors.
-2. **(Optional) Disable Vercel Deployment Protection** — Settings → Deployment Protection → Production: Disabled. Still relevant for student/coach login if any fresh user tries to join, though parent emails no longer depend on it.
+1. **Disable Vercel Deployment Protection on Production** — Settings → Deployment Protection → Production: Disabled. **Currently blocks any new student/coach signup** (not just parents). Details in section 2's "Separate blocker" subsection.
+2. **End-to-end test parent email flow** — see steps in section 2. Verify inline scorecard renders in Gmail (web + mobile), and that cleared parent email path produces no errors.
 3. **Stan's feedback on Arccos stats page** — may want layout changes or different organization after reviewing `/coach/arccos/zoe`.
 4. **Implement Strokes Gained** (pending user confirmation) — add SG: Putting + SG: Tee-to-Green to:
    - `src/lib/calculations.ts` — PGA expected-putts lookup table + SG calculation functions
