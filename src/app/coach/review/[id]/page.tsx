@@ -649,6 +649,11 @@ export default function ReviewScorecardPage() {
                         <span className="text-xs text-golf-gray-300">
                           {hole.putts ?? '-'}P
                         </span>
+                        {hole.first_putt_distance != null && (
+                          <span className="text-xs text-golf-gray-300">
+                            {hole.first_putt_distance}ft
+                          </span>
+                        )}
                         {hole.penalty_strokes > 0 && (
                           <span className="text-xs font-bold text-golf-red">
                             +{hole.penalty_strokes}pen
@@ -675,6 +680,9 @@ export default function ReviewScorecardPage() {
                         )}
                         {hole.first_putt_result && (
                           <span>1st Putt: <span className="font-bold text-golf-gray-500">{firstPuttResultLabel(hole.first_putt_result)}</span></span>
+                        )}
+                        {hole.first_putt_distance != null && (
+                          <span>1st Putt Dist: <span className="font-bold text-golf-gray-500">{hole.first_putt_distance} ft</span></span>
                         )}
                         {hole.fairway_miss_distance != null && (
                           <span>FW Miss: <span className="font-bold text-golf-gray-500">{hole.fairway_miss_distance} yds</span></span>
