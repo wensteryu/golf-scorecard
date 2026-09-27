@@ -39,8 +39,10 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-export function StatsPanel({ scorecards }: { scorecards: Scorecard[] }) {
+/** `collapsible` shows a 3-tile summary with "Show all stats" so content below stays in view. */
+export function StatsPanel({ scorecards, collapsible = false }: { scorecards: Scorecard[]; collapsible?: boolean }) {
   const [type, setType] = useState<RoundType>('tournament');
+  const [expanded, setExpanded] = useState(!collapsible);
   const stats = useMemo(() => aggregateStats(scorecards, type), [scorecards, type]);
 
   return (
@@ -79,39 +81,66 @@ export function StatsPanel({ scorecards }: { scorecards: Scorecard[] }) {
             <span className="block text-xs text-golf-gray-300">Counts are per 18 holes.</span>
           </p>
 
-          <Group title="Scoring">
-            <Tile value={fmt(stats.scoringAvg18)} label="18H Avg" />
-            <Tile value={fmtToPar(stats.toParAvg18)} label="To Par" />
-            <Tile value={stats.best18 === null ? '–' : String(stats.best18)} label="18H Best" />
-            <Tile value={fmt(stats.scoringAvg9)} label="9H Avg" />
-            <Tile value={fmt(stats.birdiesPer18)} label="Birdies+" />
-            <Tile value={fmt(stats.doublesPer18)} label="Doubles+" />
-          </Group>
+          {!expanded && (
+            <Group title="Summary">
+              {stats.rounds18 > 0 ? (
+                <Tile value={fmt(stats.scoringAvg18)} label="18H Avg" />
+              ) : (
+                <Tile value={fmt(stats.scoringAvg9)} label="9H Avg" />
+              )}
+              <Tile value={fmtPct(stats.girPct)} label="GIR" />
+              <Tile value={fmt(stats.puttsPer18)} label="Putts" />
+            </Group>
+          )}
 
-          <Group title="Par Averages">
-            <Tile value={fmt(stats.par3Avg, 2)} label="Par 3" />
-            <Tile value={fmt(stats.par4Avg, 2)} label="Par 4" />
-            <Tile value={fmt(stats.par5Avg, 2)} label="Par 5" />
-          </Group>
+          {expanded && (
+            <>
+              <Group title="Scoring">
+                <Tile value={fmt(stats.scoringAvg18)} label="18H Avg" />
+                <Tile value={fmtToPar(stats.toParAvg18)} label="To Par" />
+                <Tile value={stats.best18 === null ? '–' : String(stats.best18)} label="18H Best" />
+                <Tile value={fmt(stats.scoringAvg9)} label="9H Avg" />
+                <Tile value={fmt(stats.birdiesPer18)} label="Birdies+" />
+                <Tile value={fmt(stats.doublesPer18)} label="Doubles+" />
+              </Group>
 
-          <Group title="Tee to Green">
-            <Tile
-              value={fmtPct(stats.fairwayPct)}
-              label="Fairways"
-              sub={stats.fairwayPct === null ? undefined : `L ${fmtPct(stats.missLeftPct)} R ${fmtPct(stats.missRightPct)}`}
-            />
-            <Tile value={fmtPct(stats.girPct)} label="GIR" />
-            <Tile value={fmt(stats.penaltiesPer18)} label="Penalties" />
-          </Group>
+              <Group title="Par Averages">
+                <Tile value={fmt(stats.par3Avg, 2)} label="Par 3" />
+                <Tile value={fmt(stats.par4Avg, 2)} label="Par 4" />
+                <Tile value={fmt(stats.par5Avg, 2)} label="Par 5" />
+              </Group>
 
-          <Group title="Short Game & Putting">
-            <Tile value={fmtPct(stats.upAndDownPct)} label="Up/Down" />
-            <Tile value={fmt(stats.hundredYardsInPer18)} label="100 Yds In" />
-            <Tile value={fmt(stats.puttsPer18)} label="Putts" />
-            <Tile value={fmt(stats.puttsPerGir, 2)} label="Putts/GIR" />
-            <Tile value={fmt(stats.onePuttsPer18)} label="1-Putts" />
-            <Tile value={fmt(stats.threePuttsPer18)} label="3-Putts" />
-          </Group>
+              <Group title="Tee to Green">
+                <Tile
+                  value={fmtPct(stats.fairwayPct)}
+                  label="Fairways"
+                  sub={stats.fairwayPct === null ? undefined : `L ${fmtPct(stats.missLeftPct)} R ${fmtPct(stats.missRightPct)}`}
+                />
+                <Tile value={fmtPct(stats.girPct)} label="GIR" />
+                <Tile value={fmt(stats.penaltiesPer18)} label="Penalties" />
+              </Group>
+
+              <Group title="Short Game & Putting">
+                <Tile value={fmtPct(stats.upAndDownPct)} label="Up/Down" />
+                <Tile value={fmt(stats.hundredYardsInPer18)} label="100 Yds In" />
+                <Tile value={fmt(stats.puttsPer18)} label="Putts" />
+                <Tile value={fmt(stats.puttsPerGir, 2)} label="Putts/GIR" />
+                <Tile value={fmt(stats.onePuttsPer18)} label="1-Putts" />
+                <Tile value={fmt(stats.threePuttsPer18)} label="3-Putts" />
+              </Group>
+            </>
+          )}
+
+          {collapsible && (
+            <button
+              type="button"
+              aria-expanded={expanded}
+              onClick={() => setExpanded((e) => !e)}
+              className="self-center text-sm font-bold text-golf-blue hover:text-golf-blue-dark min-h-[44px] px-4 cursor-pointer"
+            >
+              {expanded ? 'Show fewer stats ▴' : 'Show all stats ▾'}
+            </button>
+          )}
         </>
       )}
     </section>

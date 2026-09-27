@@ -138,7 +138,7 @@ export default function StudentDetailPage() {
             <h2 className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide mb-3">
               Stats
             </h2>
-            <StatsPanel scorecards={scorecards} />
+            <StatsPanel scorecards={scorecards} collapsible />
           </div>
         )}
 
