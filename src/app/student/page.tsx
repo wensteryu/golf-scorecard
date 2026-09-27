@@ -148,6 +148,12 @@ export default function StudentDashboard() {
           </Button>
         </Link>
 
+        <Link href="/student/stats">
+          <Button variant="secondary" size="lg" className="w-full">
+            My Stats
+          </Button>
+        </Link>
+
         {/* Empty State */}
         {scorecards.length === 0 && (
           <Card>

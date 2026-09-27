@@ -2,6 +2,8 @@ export type UserRole = 'coach' | 'student';
 
 export type ScorecardStatus = 'in_progress' | 'submitted' | 'reviewed';
 
+export type RoundType = 'practice' | 'tournament';
+
 export type FairwayResult = 'hit' | 'left' | 'right' | null;
 
 export type PinPosition = 'left' | 'right' | 'short' | 'over' | 'pin_high';
@@ -44,6 +46,7 @@ export interface Scorecard {
   student_id: string;
   course_id: string;
   tournament_name: string;
+  round_type: RoundType | null;
   round_date: string;
   status: ScorecardStatus;
   hole_count: number;

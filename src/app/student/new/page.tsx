@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { GolfCourse, CourseHole } from '@/lib/types';
+import { GolfCourse, CourseHole, RoundType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
 export default function NewScorecardPage() {
@@ -18,9 +18,11 @@ export default function NewScorecardPage() {
     return today.toISOString().split('T')[0];
   });
   const [holeCount, setHoleCount] = useState<9 | 18>(18);
+  const [roundType, setRoundType] = useState<RoundType | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const defaultRoundName = roundType === 'tournament' ? 'Tournament' : 'Practice Round';
 
   // Quick-add course state
   const [showAddCourse, setShowAddCourse] = useState(false);
@@ -121,6 +123,10 @@ export default function NewScorecardPage() {
       setError('Please select or add a course');
       return;
     }
+    if (!roundType) {
+      setError('Please choose Practice or Tournament');
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -138,7 +144,8 @@ export default function NewScorecardPage() {
         .insert({
           student_id: user.id,
           course_id: selectedCourseId,
-          tournament_name: tournamentName.trim() || 'Practice Round',
+          tournament_name: tournamentName.trim() || defaultRoundName,
+          round_type: roundType,
           round_date: roundDate,
           hole_count: holeCount,
           status: 'in_progress',
@@ -295,6 +302,35 @@ export default function NewScorecardPage() {
             )}
           </div>
 
+          {/* Round type */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide">
+              Round Type
+            </span>
+            <div className="flex gap-3" role="radiogroup" aria-label="Round type">
+              {([
+                ['practice', 'Practice'],
+                ['tournament', 'Tournament'],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={roundType === value}
+                  onClick={() => setRoundType(value)}
+                  className={[
+                    'flex-1 py-3 rounded-xl font-bold text-lg transition-all cursor-pointer',
+                    roundType === value
+                      ? 'bg-golf-green text-white border-b-3 border-golf-green-dark'
+                      : 'bg-golf-gray-100 text-golf-gray-400 border-b-3 border-golf-gray-200 hover:bg-golf-gray-200',
+                  ].join(' ')}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Tournament name */}
           <div className="flex flex-col gap-2">
             <label
@@ -308,7 +344,7 @@ export default function NewScorecardPage() {
               type="text"
               value={tournamentName}
               onChange={(e) => setTournamentName(e.target.value)}
-              placeholder="Practice Round"
+              placeholder={defaultRoundName}
               className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] transition-colors duration-150 placeholder:text-golf-gray-300"
             />
           </div>

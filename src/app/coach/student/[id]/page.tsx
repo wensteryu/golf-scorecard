@@ -7,6 +7,7 @@ import { Profile, Scorecard } from '@/lib/types';
 import { formatScoreToPar, calculateStats } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
+import { StatsPanel } from '@/components/stats/stats-panel';
 
 export default function StudentDetailPage() {
   const params = useParams();
@@ -131,7 +132,21 @@ export default function StudentDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-6">
+        {scorecards.length > 0 && (
+          <div>
+            <h2 className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide mb-3">
+              Stats
+            </h2>
+            <StatsPanel scorecards={scorecards} />
+          </div>
+        )}
+
+        {scorecards.length > 0 && (
+          <h2 className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide -mb-3">
+            Rounds
+          </h2>
+        )}
         {scorecards.length === 0 ? (
           <Card>
             <CardBody>
