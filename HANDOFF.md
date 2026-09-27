@@ -20,13 +20,13 @@
 
 ## 2. Current Status
 
-### This Session (2026-09-26) — Student stats (practice vs tournament), commit `7f65cdc`, LOCAL ONLY
+### This Session (2026-09-26) — Student stats (practice vs tournament), commit `7f65cdc`, PUSHED + DEPLOYED (Vercel prod success)
 
 **Built:** `round_type` column (migration `008_add_round_type.sql`), required Practice/Tournament toggle on `/student/new`, `aggregateStats()` in `src/lib/stats.ts` (+ Vitest tests, `npm test`), shared `src/components/stats/stats-panel.tsx` used on new `/student/stats` (linked via "My Stats" button on student home) and at top of `/coach/student/[id]`. Access relies on existing RLS (students own rounds; coaches their students).
 
 **Rules (user-decided):** only practice/tournament types. Legacy rounds labeled only if name contains "practice" (68) or "tournament" (23); all others NULL and excluded from stats. Only submitted/reviewed rounds with all holes scored count. 18-hole scoring avg excludes 9-hole rounds; rates per 18 holes.
 
-**BLOCKER before push:** migration 008 must be run in Supabase SQL editor FIRST — the new-round form inserts `round_type`, so deploying before the column exists breaks round creation. No DB CLI/psql on this machine. After running, verify: `curl "$URL/rest/v1/scorecards?select=round_type&limit=1"` with service key returns 200, then `git push origin main`.
+**DONE:** migration 008 was run in Supabase SQL editor FIRST — the new-round form inserts `round_type`, so deploying before the column exists breaks round creation. No DB CLI/psql on this machine. After running, verify: `curl "$URL/rest/v1/scorecards?select=round_type&limit=1"` with service key returns 200, then `git push origin main`.
 
 **Verified:** 7 unit tests pass; build + lint clean; stats checked against real prod data (Race Roizen tournament avg 80.1 = 641/8, best 74); panel screenshotted at 375px via temp preview route (removed).
 
@@ -92,10 +92,11 @@ Holes with no putt logged should render unchanged.
 
 ## 4. Next Steps
 
-1. **Run migration 008 in Supabase SQL editor**, verify column, then push `7f65cdc` (see blocker above).
-2. Smoke-test in prod: create a round with each type; check `/student/stats` as a student and `/coach/student/[id]` as coach.
-3. Verify parent email notifications end-to-end (see below).
-4. Disable Vercel Deployment Protection to unblock new-user onboarding.
+1. Smoke-test in prod: create a round with each type; check `/student/stats` as a student and `/coach/student/[id]` as coach.
+2. Verify parent email notifications end-to-end (see below).
+3. Disable Vercel Deployment Protection to unblock new-user onboarding.
+
+**Push note:** active gh account is `wensteryupw` (no write access). Push with: `gh auth switch -u wensteryu && git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main; gh auth switch -u wensteryupw`.
 
 ## (Previous) Next Steps
 
