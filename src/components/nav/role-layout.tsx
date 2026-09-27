@@ -8,6 +8,7 @@ import { Profile, UserRole } from '@/lib/types';
 import { RoleSwitcher } from '@/components/ui/role-switcher';
 import { shouldShowTopNav } from '@/lib/nav';
 import { TopNav } from './top-nav';
+import { ViewAsBar, ViewAsProvider } from './view-as';
 
 /** Shared chrome for /student/* and /coach/*: top menu bar + admin role switcher. */
 export function RoleLayout({ role, children }: { role: UserRole; children: React.ReactNode }) {
@@ -25,11 +26,15 @@ export function RoleLayout({ role, children }: { role: UserRole; children: React
     loadProfile();
   }, []);
 
+  const admin = !!profile && isAdmin(profile.email);
+  const showNav = shouldShowTopNav(pathname);
+
   return (
-    <>
-      {shouldShowTopNav(pathname) && <TopNav role={role} profile={profile} />}
+    <ViewAsProvider profile={profile} isAdmin={admin && role === 'student'}>
+      {showNav && <TopNav role={role} profile={profile} />}
+      {showNav && role === 'student' && <ViewAsBar />}
       {children}
-      {profile && isAdmin(profile.email) && <RoleSwitcher />}
-    </>
+      {admin && <RoleSwitcher />}
+    </ViewAsProvider>
   );
 }

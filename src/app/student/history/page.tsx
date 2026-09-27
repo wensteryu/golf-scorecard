@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useStudentScope } from '@/components/nav/view-as';
 import { Scorecard } from '@/lib/types';
 import { formatScoreToPar } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
@@ -12,28 +13,21 @@ import Link from 'next/link';
 export default function HistoryPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { studentId } = useStudentScope();
 
   const [scorecards, setScorecards] = useState<Scorecard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!studentId) return;
     async function fetchHistory() {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-
         // Fetch submitted and reviewed scorecards with course info and hole scores
         const { data, error: fetchError } = await supabase
           .from('scorecards')
           .select('*, course:golf_courses(*), hole_scores(*)')
-          .eq('student_id', user.id)
+          .eq('student_id', studentId)
           .in('status', ['submitted', 'reviewed'])
           .order('round_date', { ascending: false });
 
@@ -48,7 +42,7 @@ export default function HistoryPage() {
 
     fetchHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [studentId]);
 
   function getTotalScore(scorecard: Scorecard): number {
     if (!scorecard.hole_scores) return 0;

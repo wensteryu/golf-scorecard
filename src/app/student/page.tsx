@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useStudentScope } from '@/components/nav/view-as';
 import { Scorecard } from '@/lib/types';
 import { formatScoreToPar } from '@/lib/calculations';
 import { roundMatches } from '@/lib/search';
@@ -14,6 +15,7 @@ import Link from 'next/link';
 export default function StudentDashboard() {
   const router = useRouter();
   const supabase = createClient();
+  const { studentId, readOnly } = useStudentScope();
 
   const [scorecards, setScorecards] = useState<Scorecard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,22 +23,14 @@ export default function StudentDashboard() {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
+    if (!studentId) return;
     async function fetchData() {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-
         // Fetch scorecards with course info
         const { data: scorecardsData, error: scorecardsError } = await supabase
           .from('scorecards')
           .select('*, course:golf_courses(*), hole_scores(*)')
-          .eq('student_id', user.id)
+          .eq('student_id', studentId)
           .order('round_date', { ascending: false });
 
         if (scorecardsError) throw scorecardsError;
@@ -51,7 +45,7 @@ export default function StudentDashboard() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [studentId]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -117,11 +111,13 @@ export default function StudentDashboard() {
       {/* Content */}
       <div className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-6">
         {/* New Round Button */}
-        <Link href="/student/new">
-          <Button variant="primary" size="lg" className="w-full">
-            New Round +
-          </Button>
-        </Link>
+        {!readOnly && (
+          <Link href="/student/new">
+            <Button variant="primary" size="lg" className="w-full">
+              New Round +
+            </Button>
+          </Link>
+        )}
 
         <Link href="/student/stats">
           <Button variant="secondary" size="lg" className="w-full">
@@ -196,7 +192,12 @@ export default function StudentDashboard() {
                   <Card key={sc.id} className="relative hover:shadow-md transition-shadow">
                     <CardBody>
                       <div className="flex items-center justify-between">
-                        <Link href={continueLink} className="flex-1">
+                        <Link
+                          href={continueLink}
+                          className={`flex-1 ${readOnly ? 'pointer-events-none' : ''}`}
+                          aria-disabled={readOnly}
+                          tabIndex={readOnly ? -1 : undefined}
+                        >
                           <div>
                             <p className="font-bold text-golf-gray-500">
                               {sc.course?.name ?? 'Unknown Course'}
@@ -216,25 +217,27 @@ export default function StudentDashboard() {
                             </div>
                           </div>
                         </Link>
-                        <div className="flex items-center gap-3">
-                          <Link href={continueLink} className="text-sm font-bold text-golf-green whitespace-nowrap">
-                            {allHolesDone ? continueLabel : 'Continue'} &rarr;
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleDeleteRound(sc.id);
-                            }}
-                            className="p-2 text-golf-gray-300 hover:text-golf-red transition-colors cursor-pointer"
-                            aria-label="Delete round"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                              <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </div>
+                        {!readOnly && (
+                          <div className="flex items-center gap-3">
+                            <Link href={continueLink} className="text-sm font-bold text-golf-green whitespace-nowrap">
+                              {allHolesDone ? continueLabel : 'Continue'} &rarr;
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDeleteRound(sc.id);
+                              }}
+                              className="p-2 text-golf-gray-300 hover:text-golf-red transition-colors cursor-pointer"
+                              aria-label="Delete round"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </CardBody>
                   </Card>
@@ -256,7 +259,10 @@ export default function StudentDashboard() {
                 const par = getTotalPar(sc);
                 const diff = total - par;
                 return (
-                  <Link key={sc.id} href={`/student/round/${sc.id}/summary`}>
+                  <Link
+                    key={sc.id}
+                    href={readOnly ? `/student/history/${sc.id}` : `/student/round/${sc.id}/summary`}
+                  >
                     <Card className="hover:shadow-md transition-shadow">
                       <CardBody>
                         <div className="flex items-center justify-between">
@@ -283,7 +289,7 @@ export default function StudentDashboard() {
                         </div>
                         <div className="mt-2 pt-2 border-t border-golf-gray-100 text-center">
                           <span className="text-xs font-bold text-golf-blue">
-                            Tap to view or edit &rarr;
+                            {readOnly ? 'Tap to view' : 'Tap to view or edit'} &rarr;
                           </span>
                         </div>
                       </CardBody>

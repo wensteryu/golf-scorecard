@@ -1,35 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useStudentScope } from '@/components/nav/view-as';
 import { Scorecard } from '@/lib/types';
 import { StatsPanel } from '@/components/stats/stats-panel';
 
 export default function StudentStatsPage() {
-  const router = useRouter();
   const supabase = createClient();
+  const { studentId } = useStudentScope();
 
   const [scorecards, setScorecards] = useState<Scorecard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!studentId) return;
     async function fetchData() {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-
         const { data, error: cardsError } = await supabase
           .from('scorecards')
           .select('*, hole_scores(*)')
-          .eq('student_id', user.id)
+          .eq('student_id', studentId)
           .not('round_type', 'is', null)
           .neq('status', 'in_progress');
 
@@ -44,7 +36,7 @@ export default function StudentStatsPage() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [studentId]);
 
   return (
     <div className="min-h-screen bg-golf-gray-50">
