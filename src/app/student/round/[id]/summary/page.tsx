@@ -8,6 +8,7 @@ import { Scorecard, HoleScore, ScorecardStatus, MentalityRating } from '@/lib/ty
 import { calculateStats, formatScoreToPar } from '@/lib/calculations';
 import { Card, CardHeader, CardBody } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { HoleNotes } from '@/components/scorecard/hole-notes';
 
 const CONFETTI_COLORS = [
   'bg-golf-green',
@@ -527,6 +528,16 @@ export default function SummaryPage() {
             <StatRow label="Penalty Strokes" value={stats.penaltyStrokes} />
           </CardBody>
         </Card>
+
+        {/* Hole Notes */}
+        {holeScores.some((h) => (h.student_note ?? '').trim() || (h.coach_note ?? '').trim()) && (
+          <Card>
+            <CardHeader>Hole Notes</CardHeader>
+            <CardBody className="flex flex-col gap-2">
+              <HoleNotes holes={holeScores} className="" />
+            </CardBody>
+          </Card>
+        )}
 
         {/* Reflections Summary */}
         {(scorecard.reflections ||

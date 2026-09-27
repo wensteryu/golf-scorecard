@@ -6,7 +6,7 @@ function hole(n: number, par: number, score: number | null, extra: Partial<HoleS
   return {
     id: `h${n}`, scorecard_id: 's', hole_number: n, par, score,
     fairway: null, gir_hit: null, pin_position: null, putts: null, first_putt_distance: null,
-    up_and_down: null, penalty_strokes: 0, chip_in: false, coach_note: null,
+    up_and_down: null, penalty_strokes: 0, chip_in: false, coach_note: null, student_note: null,
     fairway_miss_distance: null, club_used: null, approach_distance: null, first_putt_result: null,
     ...extra,
   };

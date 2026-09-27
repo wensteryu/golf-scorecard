@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { HoleScore, CourseHole } from '@/lib/types';
+import { HoleScore, CourseHole, RoundType } from '@/lib/types';
 import { HoleInput } from '@/components/scorecard/hole-input';
 import { CelebrationCard } from '@/components/scorecard/celebration-card';
 import { BirdieCelebration } from '@/components/scorecard/birdie-celebration';
@@ -19,6 +19,7 @@ export default function RoundScoringPage() {
   const [holeScores, setHoleScores] = useState<HoleScore[]>([]);
   const [courseHoles, setCourseHoles] = useState<CourseHole[]>([]);
   const [courseId, setCourseId] = useState<string | null>(null);
+  const [roundType, setRoundType] = useState<RoundType | null>(null);
   const [currentHole, setCurrentHole] = useState(1);
   const [showCelebration, setShowCelebration] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,7 @@ export default function RoundScoringPage() {
         setHoleScores(sortedScores);
         setCourseHoles(holes as CourseHole[]);
         setCourseId(scorecard.course_id);
+        setRoundType(scorecard.round_type ?? null);
 
         // Find the first hole without a score to resume from
         const firstIncomplete = sortedScores.find((h) => h.score === null);
@@ -374,6 +376,7 @@ export default function RoundScoringPage() {
             par={currentCourseHole.par}
             onUpdate={handleFieldChange}
             saveStatus={saveStatus}
+            allowNote={roundType === 'practice'}
           />
         )}
       </div>

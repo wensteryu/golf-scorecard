@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { HoleScore, FairwayResult, PinPosition, FirstPuttResult } from '@/lib/types';
 import { scoreColor, scoreLabel } from '@/lib/calculations';
 import { Stepper } from '@/components/ui/stepper';
@@ -10,6 +11,77 @@ interface HoleInputProps {
   par: number;
   onUpdate: (field: string, value: unknown) => void;
   saveStatus?: 'saved' | 'saving' | 'idle';
+  /** Show the optional per-hole note (practice rounds). */
+  allowNote?: boolean;
+}
+
+const NOTE_SAVE_DELAY_MS = 800;
+
+/** Keeps a local draft so typing doesn't save per keystroke; saves after a pause and on blur. */
+function HoleNoteField({ value, onSave }: { value: string | null; onSave: (note: string | null) => void }) {
+  const [open, setOpen] = useState(!!value);
+  const [draft, setDraft] = useState(value ?? '');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saved = useRef(value ?? '');
+
+  function commit(text: string) {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    if (text === saved.current) return;
+    saved.current = text;
+    onSave(text.trim() ? text : null);
+  }
+
+  // Commit on app switch / lock so the round page's hide-flush picks the note up.
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  useEffect(() => {
+    const onHide = () => document.visibilityState === 'hidden' && commit(draftRef.current);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onHide);
+      if (timer.current) clearTimeout(timer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="self-start text-sm font-bold text-golf-blue hover:text-golf-blue-dark min-h-[44px] cursor-pointer"
+      >
+        + Add note
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label
+        htmlFor="hole-note"
+        className="text-sm font-bold text-golf-gray-400 uppercase tracking-wide"
+      >
+        Hole Note
+      </label>
+      <textarea
+        id="hole-note"
+        rows={3}
+        value={draft}
+        autoFocus={!value}
+        onChange={(e) => {
+          const text = e.target.value;
+          setDraft(text);
+          if (timer.current) clearTimeout(timer.current);
+          timer.current = setTimeout(() => commit(text), NOTE_SAVE_DELAY_MS);
+        }}
+        onBlur={() => commit(draft)}
+        placeholder="What did you work on? What happened?"
+        className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 text-base focus:border-golf-green focus:outline-none placeholder:text-golf-gray-300 resize-none"
+      />
+    </div>
+  );
 }
 
 const fairwayOptions = [
@@ -72,7 +144,7 @@ function SectionDivider({ label }: { label: string }) {
   );
 }
 
-export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle' }: HoleInputProps) {
+export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle', allowNote = false }: HoleInputProps) {
   const par = hole.par ?? initialPar;
   const score = hole.score ?? par;
   const scoreDiff = score - par;
@@ -401,6 +473,14 @@ export function HoleInput({ hole, par: initialPar, onUpdate, saveStatus = 'idle'
         max={9}
         onChange={(val) => onUpdate('penalty_strokes', val)}
       />
+
+      {allowNote && (
+        <HoleNoteField
+          key={hole.id}
+          value={hole.student_note}
+          onSave={(note) => onUpdate('student_note', note)}
+        />
+      )}
     </div>
   );
 }

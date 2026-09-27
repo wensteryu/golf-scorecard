@@ -7,6 +7,7 @@ import { Scorecard, HoleScore, RoundStats } from '@/lib/types';
 import { calculateStats, formatScoreToPar, scoreColor } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { HoleNotes } from '@/components/scorecard/hole-notes';
 
 export default function ScorecardDetailPage() {
   const params = useParams();
@@ -285,16 +286,8 @@ export default function ScorecardDetailPage() {
               </table>
             </div>
 
-            {/* Coach notes for front 9 */}
-            {front9.filter((h) => h.coach_note).map((h) => (
-              <div
-                key={`note-${h.hole_number}`}
-                className="mx-4 mb-2 px-3 py-2 rounded-lg bg-golf-blue/10 border border-golf-blue/20"
-              >
-                <p className="text-xs font-bold text-golf-blue">Hole {h.hole_number} - Coach Note</p>
-                <p className="text-sm text-golf-gray-500 mt-0.5">{h.coach_note}</p>
-              </div>
-            ))}
+            {/* Notes for front 9 */}
+            <HoleNotes holes={front9} />
 
             <div className="border-t-2 border-golf-gray-200" />
 
@@ -355,16 +348,8 @@ export default function ScorecardDetailPage() {
               </table>
             </div>
 
-            {/* Coach notes for back 9 */}
-            {back9.filter((h) => h.coach_note).map((h) => (
-              <div
-                key={`note-${h.hole_number}`}
-                className="mx-4 mb-2 px-3 py-2 rounded-lg bg-golf-blue/10 border border-golf-blue/20"
-              >
-                <p className="text-xs font-bold text-golf-blue">Hole {h.hole_number} - Coach Note</p>
-                <p className="text-sm text-golf-gray-500 mt-0.5">{h.coach_note}</p>
-              </div>
-            ))}
+            {/* Notes for back 9 */}
+            <HoleNotes holes={back9} />
           </CardBody>
         </Card>
 

@@ -79,6 +79,7 @@ export interface HoleScore {
   penalty_strokes: number;
   chip_in: boolean;
   coach_note: string | null;
+  student_note: string | null;
   fairway_miss_distance: number | null;
   club_used: string | null;
   approach_distance: number | null;
