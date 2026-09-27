@@ -285,7 +285,7 @@ export default function SummaryPage() {
       {showConfetti && <ConfettiOverlay />}
 
       {/* Header */}
-      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-0 z-40">
+      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm sticky top-14 z-30">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <Link href="/student" className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center">
             &larr; Home

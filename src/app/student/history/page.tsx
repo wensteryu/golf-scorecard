@@ -104,13 +104,6 @@ export default function HistoryPage() {
       {/* Header */}
       <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.push('/student')}
-            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center cursor-pointer"
-          >
-            &larr; Back
-          </button>
           <h1 className="text-lg font-extrabold text-golf-gray-500">Round History</h1>
         </div>
       </div>

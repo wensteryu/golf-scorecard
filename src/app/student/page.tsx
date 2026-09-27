@@ -3,11 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Profile, Scorecard } from '@/lib/types';
+import { Scorecard } from '@/lib/types';
 import { formatScoreToPar } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
-import { NotificationBell } from '@/components/notifications/notification-bell';
 import { ThemeToggle } from '@/lib/theme';
 import Link from 'next/link';
 
@@ -15,7 +14,6 @@ export default function StudentDashboard() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [scorecards, setScorecards] = useState<Scorecard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,16 +29,6 @@ export default function StudentDashboard() {
           router.push('/login');
           return;
         }
-
-        // Fetch profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        setProfile(profileData as Profile);
 
         // Fetch scorecards with course info
         const { data: scorecardsData, error: scorecardsError } = await supabase
@@ -123,22 +111,6 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-golf-gray-50">
-      {/* Header */}
-      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Elite Golf Realm" className="h-10 w-auto object-contain" />
-            <div>
-              <h1 className="text-lg font-extrabold text-golf-gray-500">My Rounds</h1>
-              {profile && (
-                <p className="text-xs text-golf-gray-400 font-semibold">{profile.full_name}</p>
-              )}
-            </div>
-          </div>
-          {profile && <NotificationBell userId={profile.id} />}
-        </div>
-      </div>
-
       {/* Content */}
       <div className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-6">
         {/* New Round Button */}

@@ -123,13 +123,6 @@ export default function ManageCoursesPage() {
       {/* Header */}
       <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.push('/coach')}
-            className="text-sm font-bold text-golf-gray-400 hover:text-golf-gray-500 min-h-[44px] flex items-center cursor-pointer"
-          >
-            &larr; Dashboard
-          </button>
           <h1 className="text-lg font-extrabold text-golf-gray-500">
             Manage Courses
           </h1>

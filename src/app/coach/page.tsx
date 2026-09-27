@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client';
 import { Profile, Scorecard } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
-import { NotificationBell } from '@/components/notifications/notification-bell';
 import { StudentInbox } from '@/components/coach/student-inbox';
 import { ThemeToggle } from '@/lib/theme';
 
@@ -89,22 +88,6 @@ export default function CoachDashboardPage() {
 
   return (
     <div className="min-h-screen bg-golf-gray-50">
-      {/* Header */}
-      <div className="bg-surface border-b border-golf-gray-100 px-4 py-4 shadow-sm">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Elite Golf Realm" className="h-10 w-auto object-contain" />
-              <h1 className="text-lg font-extrabold text-golf-gray-500">
-                Coach Dashboard
-              </h1>
-            </div>
-            {profile && <NotificationBell userId={profile.id} />}
-          </div>
-
-        </div>
-      </div>
-
       <div className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-8">
         {students.length === 0 ? (
           <Card>
