@@ -40,6 +40,8 @@
 
 **Student hole notes (practice rounds) — commit `a924ff9`, PUSHED + DEPLOYED (migration 010 run by user 2026-09-26):** '+ Add note' link per hole when `round_type === 'practice'` (`HoleNoteField` in `src/components/scorecard/hole-input.tsx`; saves after 800ms pause / blur / visibilitychange). Shown only on student summary ('Hole Notes' card) and history page via `src/components/scorecard/hole-notes.tsx` — user chose NOT coach review, NOT parent email. **DONE:** migration 010 was run (`ALTER TABLE hole_scores ADD COLUMN IF NOT EXISTS student_note text;`) in Supabase SQL editor BEFORE push, else note saves fail. Verify column via REST (select=student_note&limit=1 → 200), then push using the gh-switch command below and check Vercel status.
 
+**Student dashboard search:** always-visible box on /student filtering all round sections via `roundMatches` (`src/lib/search.ts`, tested: course, event name, 'Sep 20' or ISO date). Not screenshot-verified (page needs a real student session) — user asked to check on phone.
+
 **Verified:** 7 unit tests pass; build + lint clean; stats checked against real prod data (Race Roizen tournament avg 80.1 = 641/8, best 74); panel screenshotted at 375px via temp preview route (removed).
 
 ### This Session (2026-05-10) — Local commit, NOT yet pushed
