@@ -38,6 +38,8 @@
 
 **Last N window:** StatsPanel pill selector Last 5/10/20/All (default Last 10), `aggregateStats(cards, type, lastN)` sorts by round_date desc. Coach inbox 'Tourn avg' remains all-time.
 
+**Student hole notes (practice rounds) — commit `a924ff9`, LOCAL ONLY, NOT PUSHED:** '+ Add note' link per hole when `round_type === 'practice'` (`HoleNoteField` in `src/components/scorecard/hole-input.tsx`; saves after 800ms pause / blur / visibilitychange). Shown only on student summary ('Hole Notes' card) and history page via `src/components/scorecard/hole-notes.tsx` — user chose NOT coach review, NOT parent email. **BLOCKER:** user must run migration 010 (`ALTER TABLE hole_scores ADD COLUMN IF NOT EXISTS student_note text;`) in Supabase SQL editor BEFORE push, else note saves fail. Verify column via REST (select=student_note&limit=1 → 200), then push using the gh-switch command below and check Vercel status.
+
 **Verified:** 7 unit tests pass; build + lint clean; stats checked against real prod data (Race Roizen tournament avg 80.1 = 641/8, best 74); panel screenshotted at 375px via temp preview route (removed).
 
 ### This Session (2026-05-10) — Local commit, NOT yet pushed
@@ -102,7 +104,8 @@ Holes with no putt logged should render unchanged.
 
 ## 4. Next Steps
 
-1. Smoke-test in prod: create a round with each type; check `/student/stats` as a student and `/coach/student/[id]` as coach.
+1. **Hole notes:** confirm user ran migration 010, verify column, push `a924ff9`, verify deploy.
+2. Smoke-test in prod: create a round with each type; check `/student/stats` as a student and `/coach/student/[id]` as coach.
 2. Verify parent email notifications end-to-end (see below).
 3. Disable Vercel Deployment Protection to unblock new-user onboarding.
 
