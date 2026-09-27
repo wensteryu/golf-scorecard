@@ -36,6 +36,8 @@
 
 **Top menu bar (user-picked "tabs in the bar", hidden while scoring):** `src/components/nav/{top-nav,role-layout}.tsx`, rules in `src/lib/nav.ts` (tested). Both role layouts now use `RoleLayout` (loads profile once; renders TopNav + admin RoleSwitcher). Removed logo/bell headers on /student and /coach and back links on tab pages (stats, history, courses). Summary page sticky header moved to `top-14 z-30` to dock under the bar. Logo hidden <360px. Bottom Settings/Theme/Sign Out buttons on home pages were kept (now duplicated in account menu) — ask user before removing. Pre-existing lint errors (impure render in summary confetti) untouched.
 
+**Last N window:** StatsPanel pill selector Last 5/10/20/All (default Last 10), `aggregateStats(cards, type, lastN)` sorts by round_date desc. Coach inbox 'Tourn avg' remains all-time.
+
 **Verified:** 7 unit tests pass; build + lint clean; stats checked against real prod data (Race Roizen tournament avg 80.1 = 641/8, best 74); panel screenshotted at 375px via temp preview route (removed).
 
 ### This Session (2026-05-10) — Local commit, NOT yet pushed
