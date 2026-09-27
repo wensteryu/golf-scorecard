@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Scorecard } from '@/lib/types';
 import { formatScoreToPar } from '@/lib/calculations';
+import { roundMatches } from '@/lib/search';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { ThemeToggle } from '@/lib/theme';
@@ -17,6 +18,7 @@ export default function StudentDashboard() {
   const [scorecards, setScorecards] = useState<Scorecard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     async function fetchData() {
@@ -105,9 +107,10 @@ export default function StudentDashboard() {
     setScorecards((prev) => prev.filter((s) => s.id !== id));
   }
 
-  const inProgress = scorecards.filter((s) => s.status === 'in_progress');
-  const submitted = scorecards.filter((s) => s.status === 'submitted');
-  const reviewed = scorecards.filter((s) => s.status === 'reviewed');
+  const visible = scorecards.filter((s) => roundMatches(s, query));
+  const inProgress = visible.filter((s) => s.status === 'in_progress');
+  const submitted = visible.filter((s) => s.status === 'submitted');
+  const reviewed = visible.filter((s) => s.status === 'reviewed');
 
   return (
     <div className="min-h-screen bg-golf-gray-50">
@@ -125,6 +128,26 @@ export default function StudentDashboard() {
             My Stats
           </Button>
         </Link>
+
+        {/* Search */}
+        {scorecards.length > 0 && (
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search rounds…"
+            aria-label="Search rounds by course, event or date"
+            className="w-full px-4 py-3 rounded-xl border-2 border-golf-gray-200 bg-surface text-golf-gray-500 font-semibold text-base focus:border-golf-green focus:outline-none min-h-[48px] placeholder:text-golf-gray-300"
+          />
+        )}
+
+        {scorecards.length > 0 && visible.length === 0 && (
+          <Card>
+            <CardBody className="text-center py-8">
+              <p className="text-golf-gray-400 font-semibold">No rounds match &ldquo;{query.trim()}&rdquo;.</p>
+            </CardBody>
+          </Card>
+        )}
 
         {/* Empty State */}
         {scorecards.length === 0 && (
