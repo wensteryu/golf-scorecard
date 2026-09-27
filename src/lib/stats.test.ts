@@ -14,11 +14,11 @@ function hole(n: number, par: number, score: number | null, extra: Partial<HoleS
 
 function round(
   holes: HoleScore[],
-  opts: { type?: RoundType | null; status?: ScorecardStatus; hundred?: number | null } = {}
+  opts: { type?: RoundType | null; status?: ScorecardStatus; hundred?: number | null; date?: string } = {}
 ): Scorecard {
   return {
     id: Math.random().toString(), student_id: 'st', course_id: 'c', tournament_name: '',
-    round_type: opts.type === undefined ? 'tournament' : opts.type, round_date: '2026-09-01',
+    round_type: opts.type === undefined ? 'tournament' : opts.type, round_date: opts.date ?? '2026-09-01',
     status: opts.status ?? 'reviewed', hole_count: holes.length, hundred_yards_in: opts.hundred ?? null,
     reflections: null, mentality_rating: null, what_transpired: null, how_to_respond: null,
     coach_feedback: null, created_at: '', updated_at: '', hole_scores: holes,
@@ -94,5 +94,20 @@ describe('aggregateStats', () => {
     expect(s.rounds).toBe(1);
     expect(s.scoringAvg18).toBeNull();
     expect(s.scoringAvg9).toBe(36);
+  });
+
+  it('limits to the most recent N rounds by date', () => {
+    const cards = [
+      round(bogey18(), { date: '2026-09-10' }),
+      round(par9(), { date: '2026-09-20' }),
+      round(bogey18(), { date: '2026-08-01' }),
+    ];
+    const last2 = aggregateStats(cards, 'tournament', 2)!;
+    expect(last2.rounds).toBe(2);
+    expect(last2.totalRounds).toBe(3);
+    expect(last2.rounds18).toBe(1);
+    expect(last2.scoringAvg9).toBe(36);
+    expect(aggregateStats(cards, 'tournament', 10)!.rounds).toBe(3);
+    expect(aggregateStats(cards, 'tournament')!.rounds).toBe(3);
   });
 });

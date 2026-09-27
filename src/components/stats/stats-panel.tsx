@@ -10,6 +10,13 @@ const ROUND_TYPES: { value: RoundType; label: string }[] = [
   { value: 'practice', label: 'Practice' },
 ];
 
+const WINDOWS: { value: number | undefined; label: string }[] = [
+  { value: 5, label: 'Last 5' },
+  { value: 10, label: 'Last 10' },
+  { value: 20, label: 'Last 20' },
+  { value: undefined, label: 'All' },
+];
+
 const fmt = (n: number | null, digits = 1) => (n === null ? '–' : n.toFixed(digits));
 const fmtPct = (n: number | null) => (n === null ? '–' : `${Math.round(n)}%`);
 const fmtToPar = (n: number | null) => {
@@ -43,7 +50,8 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 export function StatsPanel({ scorecards, collapsible = false }: { scorecards: Scorecard[]; collapsible?: boolean }) {
   const [type, setType] = useState<RoundType>('tournament');
   const [expanded, setExpanded] = useState(!collapsible);
-  const stats = useMemo(() => aggregateStats(scorecards, type), [scorecards, type]);
+  const [lastN, setLastN] = useState<number | undefined>(10);
+  const stats = useMemo(() => aggregateStats(scorecards, type, lastN), [scorecards, type, lastN]);
 
   return (
     <section className="flex flex-col gap-4">
@@ -67,6 +75,26 @@ export function StatsPanel({ scorecards, collapsible = false }: { scorecards: Sc
         ))}
       </div>
 
+      <div className="flex gap-2" role="radiogroup" aria-label="Rounds included">
+        {WINDOWS.map((w) => (
+          <button
+            key={w.label}
+            type="button"
+            role="radio"
+            aria-checked={lastN === w.value}
+            onClick={() => setLastN(w.value)}
+            className={[
+              'flex-1 rounded-full min-h-[44px] text-sm font-bold border-2 transition-colors cursor-pointer',
+              lastN === w.value
+                ? 'bg-golf-green/15 text-golf-green border-golf-green'
+                : 'bg-surface text-golf-gray-400 border-golf-gray-200 hover:border-golf-gray-300',
+            ].join(' ')}
+          >
+            {w.label}
+          </button>
+        ))}
+      </div>
+
       {!stats ? (
         <Card>
           <CardBody className="text-center py-8">
@@ -76,7 +104,9 @@ export function StatsPanel({ scorecards, collapsible = false }: { scorecards: Sc
       ) : (
         <>
           <p className="text-sm font-semibold text-golf-gray-400">
-            Based on {stats.rounds} {type} round{stats.rounds !== 1 ? 's' : ''}
+            {stats.rounds < stats.totalRounds
+              ? `Last ${stats.rounds} of ${stats.totalRounds} ${type} rounds`
+              : `Based on ${stats.rounds} ${type} round${stats.rounds !== 1 ? 's' : ''}`}
             {stats.rounds9 > 0 && stats.rounds18 > 0 && ` (${stats.rounds18} × 18, ${stats.rounds9} × 9)`}
             <span className="block text-xs text-golf-gray-300">Counts are per 18 holes.</span>
           </p>

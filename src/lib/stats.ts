@@ -3,6 +3,8 @@ import { HoleScore, RoundType, Scorecard } from './types';
 
 export interface AggregateStats {
   rounds: number;
+  /** Countable rounds of this type before the `lastN` limit was applied. */
+  totalRounds: number;
   holes: number;
   // Scoring (by round length so 9s don't drag down 18-hole averages)
   rounds18: number;
@@ -46,9 +48,15 @@ const avg = (nums: number[]) =>
   nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
 const pct = (n: number, d: number) => (d > 0 ? (n / d) * 100 : null);
 
-export function aggregateStats(scorecards: Scorecard[], type: RoundType): AggregateStats | null {
-  const rounds = countableRounds(scorecards, type);
-  if (rounds.length === 0) return null;
+/** `lastN` limits to the most recent N countable rounds by round date; omit for all rounds. */
+export function aggregateStats(
+  scorecards: Scorecard[],
+  type: RoundType,
+  lastN?: number
+): AggregateStats | null {
+  const all = countableRounds(scorecards, type).sort((a, b) => b.round_date.localeCompare(a.round_date));
+  if (all.length === 0) return null;
+  const rounds = lastN === undefined ? all : all.slice(0, lastN);
 
   const holes: HoleScore[] = rounds.flatMap((sc) => sc.hole_scores!);
   const pooled = calculateStats(holes);
@@ -70,6 +78,7 @@ export function aggregateStats(scorecards: Scorecard[], type: RoundType): Aggreg
 
   return {
     rounds: rounds.length,
+    totalRounds: all.length,
     holes: holes.length,
     rounds18: t18.length,
     scoringAvg18: avg(t18.map((s) => s.totalScore)),
