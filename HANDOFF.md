@@ -28,6 +28,8 @@
 
 **DONE:** migration 008 was run in Supabase SQL editor FIRST — the new-round form inserts `round_type`, so deploying before the column exists breaks round creation. No DB CLI/psql on this machine. After running, verify: `curl "$URL/rest/v1/scorecards?select=round_type&limit=1"` with service key returns 200, then `git push origin main`.
 
+**Progressive disclosure (user-picked "Summary + expand"):** `StatsPanel collapsible` on `/coach/student/[id]` shows 3 tiles (18H avg or 9H avg, GIR, putts) + "Show all stats ▾" so rounds list is visible on first screen. `/student/stats` stays fully expanded.
+
 **Verified:** 7 unit tests pass; build + lint clean; stats checked against real prod data (Race Roizen tournament avg 80.1 = 641/8, best 74); panel screenshotted at 375px via temp preview route (removed).
 
 ### This Session (2026-05-10) — Local commit, NOT yet pushed
