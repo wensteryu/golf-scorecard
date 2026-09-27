@@ -42,6 +42,8 @@
 
 **Student dashboard search:** always-visible box on /student filtering all round sections via `roundMatches` (`src/lib/search.ts`, tested: course, event name, 'Sep 20' or ISO date). Not screenshot-verified (page needs a real student session) — user asked to check on phone.
 
+**Admin 'View as student':** user expected Student View to show students' pending rounds; it showed the admin's own. Added `src/components/nav/view-as.tsx` (ViewAsProvider/useStudentScope/ViewAsBar) inside RoleLayout for the student area. /student, /student/stats, /student/history now load `studentId` from the hook instead of auth user. Read-only hides New Round, delete, Continue; submitted cards go to /student/history/[id]. RLS note: migration 002 lets ANY coach read all scorecards/hole_scores (single-coach model) — earlier claim that coach inbox is 'scoped to own students' was wrong. Round/summary pages opened directly by URL are still editable by coaches (pre-existing RLS 'Coaches can update all').
+
 **Verified:** 7 unit tests pass; build + lint clean; stats checked against real prod data (Race Roizen tournament avg 80.1 = 641/8, best 74); panel screenshotted at 375px via temp preview route (removed).
 
 ### This Session (2026-05-10) — Local commit, NOT yet pushed
