@@ -24,7 +24,7 @@
 
 **Built:** `round_type` column (migration `008_add_round_type.sql`), required Practice/Tournament toggle on `/student/new`, `aggregateStats()` in `src/lib/stats.ts` (+ Vitest tests, `npm test`), shared `src/components/stats/stats-panel.tsx` used on new `/student/stats` (linked via "My Stats" button on student home) and at top of `/coach/student/[id]`. Access relies on existing RLS (students own rounds; coaches their students).
 
-**Rules (user-decided):** only practice/tournament types. Legacy rounds labeled only if name contains "practice" (68) or "tournament" (23); all others NULL and excluded from stats. Only submitted/reviewed rounds with all holes scored count. 18-hole scoring avg excludes 9-hole rounds; rates per 18 holes.
+**Rules (user-decided):** only practice/tournament types. Legacy rounds: name contains "practice" → practice (68); everything else → tournament (293). Initially the rest were left NULL, but that hid most tournament rounds (named JTNC/AJGA/etc.), so user approved migration 009 backfilling all NULLs to tournament (applied to prod via REST 2026-09-26). Only submitted/reviewed rounds with all holes scored count. 18-hole scoring avg excludes 9-hole rounds; rates per 18 holes.
 
 **DONE:** migration 008 was run in Supabase SQL editor FIRST — the new-round form inserts `round_type`, so deploying before the column exists breaks round creation. No DB CLI/psql on this machine. After running, verify: `curl "$URL/rest/v1/scorecards?select=round_type&limit=1"` with service key returns 200, then `git push origin main`.
 
