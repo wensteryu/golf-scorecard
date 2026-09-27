@@ -30,6 +30,10 @@
 
 **Progressive disclosure (user-picked "Summary + expand"):** `StatsPanel collapsible` on `/coach/student/[id]` shows 3 tiles (18H avg or 9H avg, GIR, putts) + "Show all stats ▾" so rounds list is visible on first screen. `/student/stats` stays fully expanded.
 
+**Coach dashboard inbox (user-picked option A):** `src/components/coach/student-inbox.tsx` + `src/lib/coach-inbox.ts` (tested). Search; "Needs Review" = one row per student with pending badge (expands pending rounds inline → review page), sorted by pending count then most recent pending round_date; others under collapsed "Other Students (N)" sorted by last round, auto-expanded while searching. Coach page now fetches all visible scorecards (RLS-scoped) with hole_scores. Admin coach's own submitted rounds are included in the queue.
+
+**Data note:** the 009 REST backfill bumped `updated_at` on 270 rows (trigger `scorecards_updated_at`). Original values are lost; updated_at isn't displayed anywhere, and the inbox sorts by round_date, so no visible impact.
+
 **Verified:** 7 unit tests pass; build + lint clean; stats checked against real prod data (Race Roizen tournament avg 80.1 = 641/8, best 74); panel screenshotted at 375px via temp preview route (removed).
 
 ### This Session (2026-05-10) — Local commit, NOT yet pushed
