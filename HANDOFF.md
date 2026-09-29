@@ -20,7 +20,7 @@
 
 ## 2. Current Status
 
-### This Session (2026-09-26) — Student stats (practice vs tournament), commit `7f65cdc`, PUSHED + DEPLOYED (Vercel prod success)
+### This Session (2026-09-26 → 2026-09-29) — Student stats (practice vs tournament), commit `7f65cdc`, PUSHED + DEPLOYED (Vercel prod success)
 
 **Built:** `round_type` column (migration `008_add_round_type.sql`), required Practice/Tournament toggle on `/student/new`, `aggregateStats()` in `src/lib/stats.ts` (+ Vitest tests, `npm test`), shared `src/components/stats/stats-panel.tsx` used on new `/student/stats` (linked via "My Stats" button on student home) and at top of `/coach/student/[id]`. Access relies on existing RLS (students own rounds; coaches their students).
 
